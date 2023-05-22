@@ -1,7 +1,8 @@
 import express from "express";
 import bcrypt from "bcrypt";
-import bodyParser from "body-parser";
 import dotenv from "dotenv";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 import { execute_query } from "./psql";
 
 dotenv.config();
@@ -13,13 +14,19 @@ const NODE_PORT: number = Number(env.NODE_PORT) || 5000;
 
 const app = express();
 
+// handles cors
+app.use(cors());
+
 // parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false }));
 
 // parse application/json
-app.use(bodyParser.json());
+app.use(express.json());
 
-app.post("/api/v1/accounts/register", async (req, res) => {
+// parse cookies
+app.use(cookieParser());
+
+app.post("/register", async (req, res) => {
   const { username, password } = req.body;
 
   await bcrypt.hash(password, 10, function (err, hash) {
@@ -34,7 +41,7 @@ app.post("/api/v1/accounts/register", async (req, res) => {
   });
 });
 
-app.get("/api/v1/accounts/login", async (req, res) => {
+app.get("/login", async (req, res) => {
   const { username, password } = req.body;
   console.log("dasdas");
   const query_result: null | object = await execute_query(
