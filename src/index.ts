@@ -11,6 +11,8 @@ import {
   sendRefreshToken,
 } from "./token";
 import fakeDB from "./fakeDB";
+import { isAuth } from "./isAuth";
+import { verify, Secret } from "jsonwebtoken";
 
 dotenv.config();
 
@@ -99,12 +101,18 @@ app.post("/login", async (req, res) => {
     // 3. Create Refresh- and Accesstoken
     const accesstoken = createAccessToken((user as any).id);
     const refreshtoken = createRefreshToken((user as any).id);
-
+    console.log("refreshtoken: ", refreshtoken);
     // 4. Put the refreshtoekn in the "database"
     user.refreshtoken = refreshtoken;
     const userIndex = fakeDB.findIndex((entry: any) => entry.id == user.id);
-    if (userIndex === -1) fakeDB.push({ id: user.id, username: user.username });
-    else fakeDB[userIndex] = { id: user.id, username: user.username };
+    if (userIndex === -1)
+      fakeDB.push({ id: user.id, username: user.username, refreshtoken });
+    else
+      fakeDB[userIndex] = {
+        id: user.id,
+        username: user.username,
+        refreshtoken,
+      };
     console.log(fakeDB);
 
     // 5. Send token. Refreshtoken as a cookie and accesstoken as a regular token
@@ -131,9 +139,82 @@ app.post("/logout", (_req, res) => {
   });
 });
 
+app.post("/protected", async (req, res) => {
+  try {
+    const userId = isAuth(req);
+    if (userId !== null) {
+      res.status(200).json({
+        success: true,
+        message: "This is protected data.",
+      });
+    }
+  } catch (err: any) {
+    res.send({
+      success: false,
+      error: `${err.message}`,
+    });
+  }
+});
+
+app.post("/refresh_token", (req, res) => {
+  const token = req.cookies.refreshtoken;
+  console.log("cookies: ", req.cookies);
+  // if there is no token in request
+  if (!token)
+    return res.status(403).json({
+      success: false,
+      message: "!token",
+      accesstoken: "",
+    });
+
+  // We have a token, time to verify it
+  let payload: any = null;
+  try {
+    payload = verify(token, process.env.REFRESH_TOKEN_SECRET as Secret);
+  } catch (err: any) {
+    return res.status(404).json({
+      success: false,
+      message: "err",
+      accesstoken: "",
+    });
+  }
+
+  //token is valid, check if user exist
+  const user = fakeDB.find((user: any) => user.id === payload.userId);
+  if (!user)
+    return res.status(404).json({
+      success: false,
+      message: "!user",
+      accesstoken: "",
+    });
+  console.log("user: ", user);
+  // user exists, check if refreshtoken exists on user
+  if (user.refreshtoken !== token)
+    return res.status(403).send({
+      success: false,
+      message: "user.refreshtoken !== token",
+      accesstoken: "",
+    });
+
+  // token exists, create new Refresh and Access token
+  const accesstoken = createAccessToken(user.id);
+  const refreshtoken = createRefreshToken(user.id);
+  // update refreshtoken on user in db
+  // Could have different versions instead
+  user.refreshtoken = refreshtoken;
+  // All good to go, send new refreshtoken and accesstoken
+  sendRefreshToken(res, refreshtoken);
+  return res.status(200).send({
+    success: true,
+    message: "finished",
+    accesstoken,
+  });
+});
+
 app.all("*", (req, res) => {
   res.status(404).json({
     success: false,
+    message: "wrong route",
   });
 });
 
