@@ -1,25 +1,25 @@
-import sign from "jsonwebtoken";
+import { sign, Secret } from "jsonwebtoken";
 
-export const createAccessToken = (userId) => {
-  return sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
+export const createAccessToken = (userId: string) => {
+  return sign({ userId }, process.env.ACCESS_TOKEN_SECRET as Secret, {
     expiresIn: "15m",
   });
 };
 
-export const createRefreshToken = (userId) => {
-  return sign({ userId }, process.env.REFRESH_TOKEN_SECRET, {
-    expiresIn: "7d",
+export const createRefreshToken = (userId: any) => {
+  return sign({ userId }, process.env.REFRESH_TOKEN_SECRET as Secret, {
+    expiresIn: "1d",
   });
 };
 
-export const sendAccessToken = (res, req, accesstoken) => {
+export const sendAccessToken = (res: any, req: any, accesstoken: any) => {
   res.send({
     accesstoken,
     email: req.body.email,
   });
 };
 
-export const sendRefreshToken = (res, refreshtoken) => {
+export const sendRefreshToken = (res: any, refreshtoken: any) => {
   res.cookie("refreshtoken", refreshtoken, {
     httpOnly: true,
     path: "/refresh_token",

@@ -11,7 +11,8 @@ const PSQL_DB: string = env.PSQL_DB || "";
 const PSQL_USERNAME: string = env.PSQL_USERNAME || "";
 const PSQL_PASSWORD: string = env.PSQL_PASSWORD || "";
 
-const execute_query = async (query: string): Promise<object | null> => {
+const execute_query = async (query: string): Promise<any> => {
+  // Promise<object | null> => {
   const client = new Client({
     user: PSQL_USERNAME,
     database: PSQL_DB,
