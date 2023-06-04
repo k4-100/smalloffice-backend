@@ -23,7 +23,7 @@ POST http://127.0.0.1:5000/logout
 
 ### protected route
 POST http://127.0.0.1:5000/protected
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1IiwiaWF0IjoxNjg0ODU4Mzk3LCJleHAiOjE2ODQ4NTkyOTd9.S06P6-ceI7rano8jKFOVcK0ScT65AA5KFT1DIWI4VTY
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1IiwiaWF0IjoxNjg1ODkyNzUxLCJleHAiOjE2ODU4OTI4MTF9.53ubD89Y3MMlXe4A_5xWu_dmLDLXQhb6VSSb7n3FBf8
 
 ### refresh token
 POST http://127.0.0.1:5000/refresh_token
