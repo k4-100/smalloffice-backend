@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon ./src/index.ts",
-    "start-debug": "tsc --outDir outFiles && node ./outFiles/index.js",
+    "build-debug": "tsc --outDir outFiles --sourceMap",
     "build": "tsc --outDir outFiles"
   },
   "keywords": [],
