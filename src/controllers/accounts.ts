@@ -76,7 +76,7 @@ const accountsControllers = {
       // 3. Create Refresh- and Accesstoken
       const accesstoken = createAccessToken((user as any).id);
       const refreshtoken = createRefreshToken((user as any).id);
-      console.log("refreshtoken: ", refreshtoken);
+      console.log("rt before user.refreshtoken: ", refreshtoken);
       user.refreshtoken = refreshtoken;
       const userIndex = fakeDB.findIndex((entry: any) => entry.id == user.id);
       if (userIndex === -1)
@@ -88,6 +88,7 @@ const accountsControllers = {
           refreshtoken,
         };
       console.log("fakeDB", fakeDB);
+      console.log("rt before sendRefreshToken: ", refreshtoken);
       sendRefreshToken(res, refreshtoken);
       sendAccessToken(res, req, accesstoken, user.id, user.username);
     } catch (err: any) {
@@ -109,6 +110,7 @@ const accountsControllers = {
   refresh_token(req: any, res: any) {
     const token = req.cookies.refreshtoken;
     console.log("cookies: ", req.cookies);
+    req.cookies && console.log("rt after cookies: ", token);
     // if there is no token in request
     if (!token)
       return res.status(403).json({
@@ -133,7 +135,8 @@ const accountsControllers = {
     }
 
     //token is valid, check if user exist
-    const user = fakeDB.find((user: any) => user.id === payload.userId);
+    const _fakeDB = fakeDB;
+    const user = _fakeDB.find((user: any) => user.id === payload.userId);
     if (!user)
       return res.status(404).json({
         success: false,
@@ -143,7 +146,8 @@ const accountsControllers = {
     console.log("user: ", user);
     // user exists, check if refreshtoken exists on user
     if (user.refreshtoken !== token) {
-      console.log("user: ", user, " token: ", token);
+      // console.log("fakeDB: ", fakeDB);
+      // console.log("user: ", user, " token: ", token);
       return res.status(403).send({
         success: false,
         message: "user.refreshtoken !== token",
@@ -156,6 +160,20 @@ const accountsControllers = {
     // update refreshtoken on user in db
     // Could have different versions instead
     user.refreshtoken = refreshtoken;
+
+    const userIndex = fakeDB.findIndex((entry: any) => entry.id == user.id);
+    if (userIndex === -1)
+      return res.status(404).send({
+        success: false,
+        message: "userIndex === -1",
+        accesstoken: "",
+      });
+    fakeDB[userIndex] = {
+      id: user.id,
+      username: user.username,
+      refreshtoken,
+    };
+
     // All good to go, send new refreshtoken and accesstoken
     sendRefreshToken(res, refreshtoken);
     return res.status(200).send({

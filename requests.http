@@ -25,4 +25,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1Iiwia
 
 ### refresh token
 POST http://127.0.0.1:5000/accounts/refresh_token
-Cookie: refreshtoken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1IiwiaWF0IjoxNjg2NzQ4ODE5LCJleHAiOjE2ODY4MzUyMTl9.lghVy9o2Dp827keqnan-fp4FaRu4fM1PAdnSIGjSrsY; Path=/accounts/refresh_token; HttpOnly
+Cookie: refreshtoken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1IiwiaWF0IjoxNjg2OTI0NTgxLCJleHAiOjE2ODcwMTA5ODF9.LQIU7Tm1xLzrlxuaSTPO1CUjhwZaIOFVkcjfsBe0i78; Path=/accounts/refresh_token; HttpOnly
+
+

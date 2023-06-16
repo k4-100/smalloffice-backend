@@ -119,7 +119,8 @@ const accountsControllers = {
             });
         }
         //token is valid, check if user exist
-        const user = fakeDB_1.default.find((user) => user.id === payload.userId);
+        const _fakeDB = fakeDB_1.default;
+        const user = _fakeDB.find((user) => user.id === payload.userId);
         if (!user)
             return res.status(404).json({
                 success: false,
@@ -129,7 +130,7 @@ const accountsControllers = {
         console.log("user: ", user);
         // user exists, check if refreshtoken exists on user
         if (user.refreshtoken !== token) {
-            console.log("user: ", user, " token: ", token);
+            // console.log("user: ", user, " token: ", token);
             return res.status(403).send({
                 success: false,
                 message: "user.refreshtoken !== token",
