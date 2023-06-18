@@ -14,7 +14,7 @@ const accountsControllers = {
   async register(req: any, res: any) {
     const { username, password } = req.body;
 
-    const user_query: any = await execute_query(
+    let user_query: any = await execute_query(
       `SELECT username FROM accounts 
         WHERE username='${username}'`
     );
@@ -30,6 +30,16 @@ const accountsControllers = {
         `INSERT INTO accounts(username,password) VALUES('${username}','${hash}' )`
       );
     });
+
+    user_query = await execute_query(
+      `SELECT id, username FROM accounts 
+        WHERE username='${username}'`
+    );
+    if (!user_query.id)
+      return res.status(500).json({
+        success: true,
+        message: "cannot select user for further account creation",
+      });
 
     res.status(200).json({
       success: true,
