@@ -29,7 +29,7 @@ export const sendAccessToken = (
 };
 
 export const sendRefreshToken = (res: any, refreshtoken: any) => {
-  console.table(["rt in sendRefreshToken: ", refreshtoken]);
+  // console.table(["rt in sendRefreshToken: ", refreshtoken]);
   res.cookie("refreshtoken", refreshtoken, {
     // httpOnly: true,
     httpOnly: true,

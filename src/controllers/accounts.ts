@@ -6,14 +6,41 @@ import {
   sendRefreshToken,
 } from "../common/token";
 import fakeDB from "../models/fakeDB";
-import { execute_query } from "../models/psql";
+import { execute_query, execute_query_with_values } from "../models/psql";
 import bcrypt from "bcrypt";
 import jsonwebtoken from "jsonwebtoken";
+import fs from "fs";
+import path from "path";
+import zlib from "zlib";
+import crypto from "crypto";
 
+let default_calc_table_content: string = "";
+let default_calc_table_content_buf: Buffer;
+let default_calc_table_content_sha256: string = "";
+
+try {
+  default_calc_table_content = fs.readFileSync(
+    path.resolve("./assets/default_calc_table_content.txt"),
+    "utf8"
+  );
+
+  default_calc_table_content_sha256 = crypto
+    .createHash("sha256")
+    .update(default_calc_table_content, "utf8")
+    .digest("hex");
+
+  const inputBuffer = Buffer.from(default_calc_table_content, "utf8");
+  default_calc_table_content_buf = zlib.deflateSync(inputBuffer);
+  console.log("buf: ", default_calc_table_content_buf);
+} catch (err) {
+  console.error("FAILED TO LOAD DCTC ", err);
+}
+// debugger;
 const accountsControllers = {
   async register(req: any, res: any) {
     const { username, password } = req.body;
 
+    // check if user exists:
     let user_query: any = await execute_query(
       `SELECT username FROM accounts 
         WHERE username='${username}'`
@@ -25,22 +52,50 @@ const accountsControllers = {
         message: "account already exists",
       });
     }
-    bcrypt.hash(password, 10, function (err, hash) {
-      execute_query(
-        `INSERT INTO accounts(username,password) VALUES('${username}','${hash}' )`
-      );
-    });
 
+    const hash = bcrypt.hashSync(password, 10);
+
+    // insert user data:
+    await execute_query(
+      `INSERT INTO accounts(username,password) VALUES('${username}','${hash}' )`
+    );
+
+    // check if user was created properly:
     user_query = await execute_query(
       `SELECT id, username FROM accounts 
         WHERE username='${username}'`
     );
-    if (!user_query.id)
+
+    if (!user_query[0].id)
       return res.status(500).json({
         success: true,
         message: "cannot select user for further account creation",
       });
 
+    // add sheet
+    await execute_query(
+      `INSERT INTO calc_sheets(account_id) VALUES(${user_query[0].id})`
+    );
+
+    // check if user was created properly:
+    const sheet_query = await execute_query(
+      `SELECT id FROM calc_sheets 
+        WHERE account_id=${user_query[0].id}`
+    );
+
+    if (!sheet_query[0].id)
+      return res.status(500).json({
+        success: true,
+        message: "cannot select sheet for further account creation",
+      });
+
+    const query = `INSERT INTO calc_tables(calc_sheet_id, uncompressed_content_checksum, compressed_content) VALUES(${
+      sheet_query[0].id
+    }, '${default_calc_table_content_sha256}',  decode('${default_calc_table_content_buf.toString(
+      "hex"
+    )}', 'hex') )`;
+
+    for (let i = 0; i < 3; i++) await execute_query(query);
     res.status(200).json({
       success: true,
       message: "account created",
@@ -97,6 +152,7 @@ const accountsControllers = {
           username: user.username,
           refreshtoken,
         };
+
       console.log("fakeDB", fakeDB);
       console.log("rt before sendRefreshToken: ", refreshtoken);
       sendRefreshToken(res, refreshtoken);

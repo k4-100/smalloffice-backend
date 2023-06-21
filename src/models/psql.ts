@@ -12,7 +12,6 @@ const PSQL_USERNAME: string = env.PSQL_USERNAME || "";
 const PSQL_PASSWORD: string = env.PSQL_PASSWORD || "";
 
 const execute_query = async (query: string): Promise<any> => {
-  // Promise<object | null> => {
   const client = new Client({
     user: PSQL_USERNAME,
     database: PSQL_DB,
@@ -20,15 +19,14 @@ const execute_query = async (query: string): Promise<any> => {
     host: PSQL_HOSTNAME,
     password: PSQL_PASSWORD,
   });
-
+  // Promise<object | null> => {
   await client.connect();
-
   // promise
   return await client
     .query(query)
     .then((res) => res.rows)
     .catch((e) => {
-      console.log("err: ", e.stack);
+      console.error("error while executing psql query: ", e.stack);
       return null;
     })
     .finally(() => {
@@ -36,4 +34,30 @@ const execute_query = async (query: string): Promise<any> => {
     });
 };
 
-export { execute_query };
+const execute_query_with_values = async (
+  query: string,
+  values: any[]
+): Promise<any> => {
+  const client = new Client({
+    user: PSQL_USERNAME,
+    database: PSQL_DB,
+    port: PSQL_PORT,
+    host: PSQL_HOSTNAME,
+    password: PSQL_PASSWORD,
+  });
+  // Promise<object | null> => {
+  await client.connect();
+  // promise
+  return await client
+    .query(query, values)
+    .then((res) => res.rows)
+    .catch((e) => {
+      console.error("error while executing psql query: ", e.stack);
+      return null;
+    })
+    .finally(() => {
+      client.end();
+    });
+};
+
+export { execute_query, execute_query_with_values };
