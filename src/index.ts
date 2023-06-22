@@ -2,8 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { isAuth } from "./common/isAuth";
 import accountsRouter from "./routes/accounts";
+import calcRouter from "./routes/calc";
 
 dotenv.config();
 
@@ -31,32 +31,9 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/accounts", accountsRouter);
+app.use("/calc", calcRouter);
 
-// app.get("/api/v1", (req, res) => {
-//   res.status(200).json({
-//     success: true,
-//     message: "api root",
-//   });
-// });
-
-// app.post("/protected", async (req, res) => {
-//   try {
-//     const userId = isAuth(req);
-//     if (userId !== null) {
-//       res.status(200).json({
-//         success: true,
-//         message: "This is protected data.",
-//       });
-//     }
-//   } catch (err: any) {
-//     res.send({
-//       success: false,
-//       error: `${err.message}`,
-//     });
-//   }
-// });
-
-app.all("*", (req, res) => {
+app.all("*", (_req, res) => {
   res.status(404).json({
     success: false,
     message: "wrong route",

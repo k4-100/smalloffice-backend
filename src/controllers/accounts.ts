@@ -31,7 +31,6 @@ try {
 
   const inputBuffer = Buffer.from(default_calc_table_content, "utf8");
   default_calc_table_content_buf = zlib.deflateSync(inputBuffer);
-  console.log("buf: ", default_calc_table_content_buf);
 } catch (err) {
   console.error("FAILED TO LOAD DCTC ", err);
 }
