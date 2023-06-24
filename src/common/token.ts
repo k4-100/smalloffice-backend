@@ -2,7 +2,7 @@ import { sign, Secret } from "jsonwebtoken";
 
 export const createAccessToken = (userId: string) => {
   return sign({ userId }, process.env.ACCESS_TOKEN_SECRET as Secret, {
-    expiresIn: "10m",
+    expiresIn: "30m",
   });
 };
 

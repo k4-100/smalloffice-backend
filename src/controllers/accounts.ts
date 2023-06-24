@@ -30,7 +30,9 @@ try {
     .digest("hex");
 
   const inputBuffer = Buffer.from(default_calc_table_content, "utf8");
-  default_calc_table_content_buf = zlib.deflateSync(inputBuffer);
+  console.log("inputBuffer: ", inputBuffer.toString("utf8"));
+  // default_calc_table_content_buf = zlib.deflateSync(inputBuffer);
+  default_calc_table_content_buf = inputBuffer;
 } catch (err) {
   console.error("FAILED TO LOAD DCTC ", err);
 }
@@ -88,11 +90,12 @@ const accountsControllers = {
         message: "cannot select sheet for further account creation",
       });
 
-    const query = `INSERT INTO calc_tables(calc_sheet_id, uncompressed_content_checksum, compressed_content) VALUES(${
+    const query = `INSERT INTO calc_tables(calc_sheet_id, uncompressed_content_checksum, compressed_content) 
+VALUES(${
       sheet_query[0].id
-    }, '${default_calc_table_content_sha256}',  decode('${default_calc_table_content_buf.toString(
+    }, '${default_calc_table_content_sha256}',  E'\\x${default_calc_table_content_buf.toString(
       "hex"
-    )}', 'hex') )`;
+    )}' )`;
 
     for (let i = 0; i < 3; i++) await execute_query(query);
     res.status(200).json({

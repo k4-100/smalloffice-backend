@@ -1,25 +1,48 @@
 import express from "express";
+import zlib from "zlib";
 import { isAuth } from "../common/isAuth";
+import { execute_query } from "../models/psql";
 
 const calcControllers = {
-  load(req: express.Request, res: express.Response) {
+  async load(req: express.Request, res: express.Response) {
     try {
       const userId = isAuth(req);
-      // if (userId !== null) {
-      //   res.status(200).json({
-      //     success: true,
-      //     message: "This is protected data.",
-      //   });
-      // }
-      res.status(220).json({
+      if (userId == null) {
+        res.status(200).json({
+          success: true,
+          message: "userID == null",
+        });
+      }
+
+      const query_result: any[] = await execute_query(
+        `SELECT calc_tables.id AS calc_tables_id, calc_sheets.id AS calc_sheets_id, calc_tables.uncompressed_content_checksum, calc_tables.compressed_content
+            FROM calc_tables, calc_sheets, accounts 
+            WHERE accounts.id = ${userId}
+            AND accounts.id = calc_sheets.account_id
+            AND calc_sheets.id = calc_tables.calc_sheet_id`
+      );
+
+      if (!query_result)
+        res.status(500).json({
+          success: false,
+          message: "query is null",
+          userId,
+        });
+
+      res.status(200).json({
         success: true,
         message: "loaded sheet successfully",
-        userId,
+        query_result: query_result.map((table) => ({
+          ...table,
+          compressed_content: zlib
+            .deflateSync(table.compressed_content)
+            .toString("utf8"),
+        })),
       });
     } catch (err: any) {
       res.send({
         success: false,
-        error: `${err.message}`,
+        message: `${err.message}`,
       });
     }
   },
