@@ -15,7 +15,7 @@ const calcControllers = {
       }
 
       const query_result: any[] = await execute_query(
-        `SELECT calc_tables.id AS calc_tables_id, calc_sheets.id AS calc_sheets_id, calc_tables.uncompressed_content_checksum, calc_tables.compressed_content
+        `SELECT calc_tables.id AS calc_tables_id, calc_sheets.id AS calc_sheets_id, calc_tables.uncompressed_content_checksum, calc_tables.compressed_content AS compressed_content
             FROM calc_tables, calc_sheets, accounts 
             WHERE accounts.id = ${userId}
             AND accounts.id = calc_sheets.account_id
@@ -35,7 +35,7 @@ const calcControllers = {
         query_result: query_result.map((table) => ({
           ...table,
           compressed_content: zlib
-            .deflateSync(table.compressed_content)
+            .inflateSync(zlib.deflateSync(table.compressed_content))
             .toString("utf8"),
         })),
       });
