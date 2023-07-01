@@ -6,7 +6,7 @@ import {
   sendRefreshToken,
 } from "../common/token";
 import fakeDB from "../models/fakeDB";
-import { execute_query, execute_query_with_values } from "../models/psql";
+import { execute_query } from "../models/psql";
 import bcrypt from "bcrypt";
 import jsonwebtoken from "jsonwebtoken";
 import fs from "fs";
@@ -30,15 +30,12 @@ try {
     .digest("hex");
 
   const inputBuffer = Buffer.from(default_calc_table_content);
-  console.log("inputBuffer utf8: ", inputBuffer);
   default_calc_table_content_buf = zlib.deflateSync(inputBuffer);
-  console.log("deflated: ", default_calc_table_content_buf);
-  console.log("inflated: ", zlib.inflateSync(default_calc_table_content_buf));
   default_calc_table_content_buf = inputBuffer;
 } catch (err) {
   console.error("FAILED TO LOAD DCTC ", err);
 }
-// debugger;
+
 const accountsControllers = {
   async register(req: any, res: any) {
     const { username, password } = req.body;

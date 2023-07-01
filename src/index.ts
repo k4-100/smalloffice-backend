@@ -1,7 +1,8 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import compression from "compression";
 import accountsRouter from "./routes/accounts";
 import calcRouter from "./routes/calc";
 
@@ -14,6 +15,8 @@ const NODE_PORT: number = Number(env.NODE_PORT) || 5000;
 
 const app = express();
 
+app.use(compression({ filter: shouldCompress }));
+
 // handles cors
 app.use(
   cors({
@@ -21,6 +24,7 @@ app.use(
     credentials: true,
   })
 );
+
 // parse application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: false }));
 
@@ -29,6 +33,16 @@ app.use(express.json());
 
 // parse cookies
 app.use(cookieParser());
+
+function shouldCompress(req: Request, res: Response) {
+  if (req.headers["x-no-compression"]) {
+    // don't compress responses with this request header
+    return false;
+  }
+
+  // fallback to standard filter function
+  return compression.filter(req, res);
+}
 
 app.use("/accounts", accountsRouter);
 app.use("/calc", calcRouter);

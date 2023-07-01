@@ -32,7 +32,7 @@ const calcControllers = {
       res.status(200).json({
         success: true,
         message: "loaded sheet successfully",
-        query_result: query_result.map((table) => ({
+        data: query_result.map((table) => ({
           ...table,
           compressed_content: zlib
             .inflateSync(zlib.deflateSync(table.compressed_content))
