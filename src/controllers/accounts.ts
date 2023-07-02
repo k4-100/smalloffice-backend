@@ -117,8 +117,6 @@ VALUES(${sheet_query[0].id}, '${default_calc_table_content_sha256}',  E'\\${defa
 
       const user: any = user_query[0];
 
-      console.log("user: ", user);
-
       // checks if user is in db
       if (!user) {
         res.status(400).json({
@@ -145,7 +143,6 @@ VALUES(${sheet_query[0].id}, '${default_calc_table_content_sha256}',  E'\\${defa
       // 3. Create Refresh- and Accesstoken
       const accesstoken = createAccessToken((user as any).id);
       const refreshtoken = createRefreshToken((user as any).id);
-      console.log("rt before user.refreshtoken: ", refreshtoken);
       user.refreshtoken = refreshtoken;
       const userIndex = fakeDB.findIndex((entry: any) => entry.id == user.id);
       if (userIndex === -1)
@@ -157,8 +154,6 @@ VALUES(${sheet_query[0].id}, '${default_calc_table_content_sha256}',  E'\\${defa
           refreshtoken,
         };
 
-      console.log("fakeDB", fakeDB);
-      console.log("rt before sendRefreshToken: ", refreshtoken);
       sendRefreshToken(res, refreshtoken);
       sendAccessToken(res, req, accesstoken, user.id, user.username);
     } catch (err: any) {
@@ -179,8 +174,6 @@ VALUES(${sheet_query[0].id}, '${default_calc_table_content_sha256}',  E'\\${defa
 
   refresh_token(req: any, res: any) {
     const token = req.cookies.refreshtoken;
-    console.log("cookies: ", req.cookies);
-    req.cookies && console.log("rt after cookies: ", token);
     // if there is no token in request
     if (!token)
       return res.status(403).json({
@@ -213,11 +206,8 @@ VALUES(${sheet_query[0].id}, '${default_calc_table_content_sha256}',  E'\\${defa
         message: "!user",
         accesstoken: "",
       });
-    console.log("user: ", user);
     // user exists, check if refreshtoken exists on user
     if (user.refreshtoken !== token) {
-      // console.log("fakeDB: ", fakeDB);
-      // console.log("user: ", user, " token: ", token);
       return res.status(403).send({
         success: false,
         message: "user.refreshtoken !== token",

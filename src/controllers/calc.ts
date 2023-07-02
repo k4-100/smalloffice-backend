@@ -8,8 +8,8 @@ const calcControllers = {
     try {
       const userId = isAuth(req);
       if (userId == null) {
-        res.status(200).json({
-          success: true,
+        res.status(500).json({
+          success: false,
           message: "userID == null",
         });
       }
@@ -40,14 +40,46 @@ const calcControllers = {
         })),
       });
     } catch (err: any) {
-      res.send({
+      res.status(500).send({
         success: false,
-        message: `${err.message}`,
+        message: `error while loading sheet ${err.message}`,
       });
     }
   },
 
-  save(req: express.Request, res: express.Response) {
+  async save(req: express.Request, res: express.Response) {
+    // req.body
+    //
+
+    //     data:{
+    // calc_tables_id:
+    //       calc_sheets_id:
+    //       uncompressed_content_checksum:
+    //       compressed_content:
+    //     }
+
+    try {
+      const userId = isAuth(req);
+      if (userId == null) {
+        res.status(500).json({
+          success: false,
+          message: "userID == null",
+        });
+      }
+      // for (let i = 0; i < 3; i++) {
+      //   // const tableBuffer = Buffer.from(default_calc_table_content);
+      //   // deflatedTableBuffer = zlib.deflateSync(inputBuffer);
+      //   await execute_query(
+      //     `INSERT INTO calc_tables() VALUES(${})
+      //       WHERE calc_sheets.id = calc_tables.calc_sheet_id`
+      //   );
+      // }
+    } catch (err: any) {
+      res.status(500).send({
+        success: false,
+        message: `error while loading sheet ${err.message}`,
+      });
+    }
     return;
   },
 

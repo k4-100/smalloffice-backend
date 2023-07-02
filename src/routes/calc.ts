@@ -13,6 +13,6 @@ const calcRouter = express.Router();
 // accountsRouter.post("/refresh_token", accountsControllers.refresh_token);
 
 calcRouter.post("/load", calcControllers.load);
-calcRouter.post("/save", calcControllers.save);
+calcRouter.put("/save", calcControllers.save);
 
 export default calcRouter;
