@@ -4,7 +4,7 @@ exports.sendRefreshToken = exports.sendAccessToken = exports.createRefreshToken 
 const jsonwebtoken_1 = require("jsonwebtoken");
 const createAccessToken = (userId) => {
     return (0, jsonwebtoken_1.sign)({ userId }, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "5m",
+        expiresIn: "30m",
     });
 };
 exports.createAccessToken = createAccessToken;
@@ -25,6 +25,7 @@ const sendAccessToken = (res, req, accesstoken, id, username) => {
 };
 exports.sendAccessToken = sendAccessToken;
 const sendRefreshToken = (res, refreshtoken) => {
+    // console.table(["rt in sendRefreshToken: ", refreshtoken]);
     res.cookie("refreshtoken", refreshtoken, {
         // httpOnly: true,
         httpOnly: true,

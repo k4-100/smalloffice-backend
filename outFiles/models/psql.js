@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.execute_query = void 0;
+exports.execute_query_with_values = exports.execute_query = void 0;
 const pg_1 = require("pg");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
@@ -23,7 +23,6 @@ const PSQL_DB = env.PSQL_DB || "";
 const PSQL_USERNAME = env.PSQL_USERNAME || "";
 const PSQL_PASSWORD = env.PSQL_PASSWORD || "";
 const execute_query = (query) => __awaiter(void 0, void 0, void 0, function* () {
-    // Promise<object | null> => {
     const client = new pg_1.Client({
         user: PSQL_USERNAME,
         database: PSQL_DB,
@@ -31,13 +30,14 @@ const execute_query = (query) => __awaiter(void 0, void 0, void 0, function* () 
         host: PSQL_HOSTNAME,
         password: PSQL_PASSWORD,
     });
+    // Promise<object | null> => {
     yield client.connect();
     // promise
     return yield client
         .query(query)
         .then((res) => res.rows)
         .catch((e) => {
-        console.log("err: ", e.stack);
+        console.error("error while executing psql query: ", e.stack);
         return null;
     })
         .finally(() => {
@@ -45,4 +45,27 @@ const execute_query = (query) => __awaiter(void 0, void 0, void 0, function* () 
     });
 });
 exports.execute_query = execute_query;
+const execute_query_with_values = (query, values) => __awaiter(void 0, void 0, void 0, function* () {
+    const client = new pg_1.Client({
+        user: PSQL_USERNAME,
+        database: PSQL_DB,
+        port: PSQL_PORT,
+        host: PSQL_HOSTNAME,
+        password: PSQL_PASSWORD,
+    });
+    // Promise<object | null> => {
+    yield client.connect();
+    // promise
+    return yield client
+        .query(query, values)
+        .then((res) => res.rows)
+        .catch((e) => {
+        console.error("error while executing psql query: ", e.stack);
+        return null;
+    })
+        .finally(() => {
+        client.end();
+    });
+});
+exports.execute_query_with_values = execute_query_with_values;
 //# sourceMappingURL=psql.js.map

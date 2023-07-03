@@ -206,8 +206,11 @@ VALUES(${sheet_query[0].id}, '${default_calc_table_content_sha256}',  E'\\${defa
         message: "!user",
         accesstoken: "",
       });
+    // console.log("user: ", user);
     // user exists, check if refreshtoken exists on user
     if (user.refreshtoken !== token) {
+      // console.log("fakeDB: ", fakeDB);
+      // console.log("user: ", user, " token: ", token);
       return res.status(403).send({
         success: false,
         message: "user.refreshtoken !== token",

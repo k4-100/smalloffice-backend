@@ -2,6 +2,8 @@ import express from "express";
 import zlib from "zlib";
 import { isAuth } from "../common/isAuth";
 import { execute_query } from "../models/psql";
+import { resolve } from "path";
+import { table } from "console";
 
 const calcControllers = {
   async load(req: express.Request, res: express.Response) {
@@ -48,15 +50,17 @@ const calcControllers = {
   },
 
   async save(req: express.Request, res: express.Response) {
-    // req.body
-    //
+    // console.log(req.body);
 
-    //     data:{
-    // calc_tables_id:
-    //       calc_sheets_id:
-    //       uncompressed_content_checksum:
-    //       compressed_content:
-    //     }
+    // {
+    //   id: 29,
+    //   tables: [
+    //     { cells: [Array], id: 16 },
+    //     { cells: [Array], id: 17 },
+    //     { cells: [Array], id: 18 }
+    //   ],
+    //   mainTabID: 16
+    // }
 
     try {
       const userId = isAuth(req);
@@ -66,14 +70,45 @@ const calcControllers = {
           message: "userID == null",
         });
       }
-      // for (let i = 0; i < 3; i++) {
-      //   // const tableBuffer = Buffer.from(default_calc_table_content);
-      //   // deflatedTableBuffer = zlib.deflateSync(inputBuffer);
-      //   await execute_query(
-      //     `INSERT INTO calc_tables() VALUES(${})
-      //       WHERE calc_sheets.id = calc_tables.calc_sheet_id`
-      //   );
-      // }
+
+      const deflated_tables: any[] = req.body.sheet.tables.map((tab: any) => ({
+        cells: zlib.deflateSync(Buffer.from(JSON.stringify(tab.cells))),
+        id: tab.id,
+      }));
+      // console.log(deflated_tables);
+
+      // const passed_all: boolean = deflated_tables.every(async (tab) => {
+      //
+      // });
+
+      const passed_all: boolean | unknown[] = await Promise.all([
+        ...deflated_tables.map(
+          (tab) =>
+            new Promise((res, rej) => {
+              execute_query(
+                `INSERT INTO calc_tables(compressed_content) VALUES( E'\\${tab.cells}') WHERE  = '${tab.id}'`
+              )
+                .then((q_r) => {
+                  if (!q_r) rej(false);
+                  else res(true);
+                })
+                .catch(() => rej(false));
+            })
+        ),
+      ])
+        .then((rs) => rs)
+        .catch(() => false);
+
+      if (!passed_all)
+        return res.status(500).json({
+          success: true,
+          message: "failed to save tables",
+        });
+
+      res.status(200).json({
+        success: true,
+        message: "loaded sheet successfully",
+      });
     } catch (err: any) {
       res.status(500).send({
         success: false,
