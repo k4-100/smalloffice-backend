@@ -1,9 +1,7 @@
 import express from "express";
 import zlib from "zlib";
 import { isAuth } from "../common/isAuth";
-import { execute_query } from "../models/psql";
-import { resolve } from "path";
-import { table } from "console";
+import { execute_query, execute_query_with_values } from "../models/psql";
 
 const calcControllers = {
   async load(req: express.Request, res: express.Response) {
@@ -30,6 +28,13 @@ const calcControllers = {
           message: "query is null",
           userId,
         });
+
+      console.log(
+        "fsafsa",
+        zlib
+          .inflateSync(zlib.deflateSync(query_result[0].compressed_content))
+          .toString("utf8")
+      );
 
       res.status(200).json({
         success: true,
@@ -61,7 +66,6 @@ const calcControllers = {
     //   ],
     //   mainTabID: 16
     // }
-
     try {
       const userId = isAuth(req);
       if (userId == null) {
@@ -71,10 +75,21 @@ const calcControllers = {
         });
       }
 
-      const deflated_tables: any[] = req.body.sheet.tables.map((tab: any) => ({
-        cells: zlib.deflateSync(Buffer.from(JSON.stringify(tab.cells))),
-        id: tab.id,
-      }));
+      // debugger;
+      const deflated_tables: any[] = req.body.sheet.tables.map((tab: any) => {
+        const { id } = tab;
+
+        const tab_no_id = tab;
+        delete tab_no_id.id;
+
+        return {
+          cells:
+            // zlib.deflateSync(Buffer.from(JSON.stringify(tab.cells))),
+
+            Buffer.from(JSON.stringify(tab_no_id)),
+          id,
+        };
+      });
       // console.log(deflated_tables);
 
       // const passed_all: boolean = deflated_tables.every(async (tab) => {
@@ -85,9 +100,13 @@ const calcControllers = {
         ...deflated_tables.map(
           (tab) =>
             new Promise((res, rej) => {
-              execute_query(
-                `INSERT INTO calc_tables(compressed_content) VALUES( E'\\${tab.cells}') WHERE  = '${tab.id}'`
+              execute_query_with_values(
+                `UPDATE calc_tables SET compressed_content = $1 WHERE id = $2`,
+                [tab.cells, tab.id]
               )
+                // execute_query(
+                //   `UPDATE calc_tables SET compressed_content = E'\\${tab.cells}' WHERE id = ${tab.id}`
+                // )
                 .then((q_r) => {
                   if (!q_r) rej(false);
                   else res(true);
