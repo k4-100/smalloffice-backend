@@ -38,16 +38,15 @@ const calcControllers = {
 
       const data = query_result.map((table) => {
         // debugger;
-        let compressed_content_buffer = Buffer.from(table.compressed_content);
-
-        const inflated = zlib.inflateSync(
-          Buffer.from(compressed_content_buffer)
-        );
+        const compressed_content_buffer = Buffer.from(table.compressed_content);
+        debugger;
+        const inflated = zlib.inflateSync(compressed_content_buffer);
         console.log(inflated);
-        return {
+        const newObj = {
           ...table,
           compressed_content: inflated.toString("utf8"),
         };
+        return newObj;
       });
       res.status(200).json({
         success: true,
@@ -91,9 +90,7 @@ const calcControllers = {
         delete tab_no_id.id;
 
         return {
-          cells: zlib.deflateSync(Buffer.from(JSON.stringify(tab.cells))),
-
-          // Buffer.from(JSON.stringify(tab_no_id)),
+          cells: zlib.deflateSync(Buffer.from(JSON.stringify(tab_no_id))),
           id,
         };
       });
@@ -108,15 +105,17 @@ const calcControllers = {
           (tab) =>
             new Promise((res, rej) => {
               execute_query_with_values(
-                `UPDATE calc_tables SET compressed_content = $1 WHERE id = $2`,
-                [tab.cells, tab.id]
+                `UPDATE calc_tables SET compressed_content = decode($1,'hex') WHERE id = $2`,
+                [tab.cells.toString("hex"), tab.id]
               )
                 // execute_query(
                 //   `UPDATE calc_tables SET compressed_content = E'\\${tab.cells}' WHERE id = ${tab.id}`
                 // )
                 .then((q_r) => {
                   if (!q_r) rej(false);
-                  else res(true);
+                  else {
+                    res(true);
+                  }
                 })
                 .catch(() => rej(false));
             })
