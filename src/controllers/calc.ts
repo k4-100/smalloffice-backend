@@ -14,6 +14,7 @@ const calcControllers = {
         });
       }
 
+      // convert_from(column_name, 'UTF8')
       const query_result: any[] = await execute_query(
         `SELECT calc_tables.id AS calc_tables_id, calc_sheets.id AS calc_sheets_id, calc_tables.uncompressed_content_checksum, calc_tables.compressed_content AS compressed_content
             FROM calc_tables, calc_sheets, accounts 
@@ -21,7 +22,6 @@ const calcControllers = {
             AND accounts.id = calc_sheets.account_id
             AND calc_sheets.id = calc_tables.calc_sheet_id`
       );
-
       if (!query_result)
         res.status(500).json({
           success: false,
@@ -29,22 +29,30 @@ const calcControllers = {
           userId,
         });
 
-      console.log(
-        "fsafsa",
-        zlib
-          .inflateSync(zlib.deflateSync(query_result[0].compressed_content))
-          .toString("utf8")
-      );
+      // console.log(
+      //   "fsafsa",
+      //   zlib
+      //     .inflateSync(zlib.deflateSync(query_result[0].compressed_content))
+      //     .toString("utf8")
+      // );
 
+      const data = query_result.map((table) => {
+        // debugger;
+        let compressed_content_buffer = Buffer.from(table.compressed_content);
+
+        const inflated = zlib.inflateSync(
+          Buffer.from(compressed_content_buffer)
+        );
+        console.log(inflated);
+        return {
+          ...table,
+          compressed_content: inflated.toString("utf8"),
+        };
+      });
       res.status(200).json({
         success: true,
         message: "loaded sheet successfully",
-        data: query_result.map((table) => ({
-          ...table,
-          compressed_content: zlib
-            .inflateSync(zlib.deflateSync(table.compressed_content))
-            .toString("utf8"),
-        })),
+        data,
       });
     } catch (err: any) {
       res.status(500).send({
@@ -83,10 +91,9 @@ const calcControllers = {
         delete tab_no_id.id;
 
         return {
-          cells:
-            // zlib.deflateSync(Buffer.from(JSON.stringify(tab.cells))),
+          cells: zlib.deflateSync(Buffer.from(JSON.stringify(tab.cells))),
 
-            Buffer.from(JSON.stringify(tab_no_id)),
+          // Buffer.from(JSON.stringify(tab_no_id)),
           id,
         };
       });
