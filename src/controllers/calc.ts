@@ -29,7 +29,6 @@ const calcControllers = {
           userId,
         });
 
-      // console.log(
       //   "fsafsa",
       //   zlib
       //     .inflateSync(zlib.deflateSync(query_result[0].compressed_content))
@@ -39,9 +38,7 @@ const calcControllers = {
       const data = query_result.map((table) => {
         // debugger;
         const compressed_content_buffer = Buffer.from(table.compressed_content);
-        debugger;
         const inflated = zlib.inflateSync(compressed_content_buffer);
-        console.log(inflated);
         const newObj = {
           ...table,
           compressed_content: inflated.toString("utf8"),
@@ -62,8 +59,6 @@ const calcControllers = {
   },
 
   async save(req: express.Request, res: express.Response) {
-    // console.log(req.body);
-
     // {
     //   id: 29,
     //   tables: [
@@ -94,7 +89,6 @@ const calcControllers = {
           id,
         };
       });
-      // console.log(deflated_tables);
 
       // const passed_all: boolean = deflated_tables.every(async (tab) => {
       //
