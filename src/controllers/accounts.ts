@@ -6,46 +6,23 @@ import {
   sendRefreshToken,
 } from "../common/token";
 import fakeDB from "../models/fakeDB";
-import { execute_query } from "../models/psql";
+import { execute_query_with_values } from "../models/psql";
 import bcrypt from "bcrypt";
 import jsonwebtoken from "jsonwebtoken";
-import fs from "fs";
-import path from "path";
-import zlib from "zlib";
-import crypto from "crypto";
-
-let default_calc_table_content: string = "";
-let default_calc_table_content_buf: Buffer;
-let default_calc_table_content_sha256: string = "";
-
-try {
-  default_calc_table_content = fs.readFileSync(
-    path.resolve("./assets/default_calc_table_content.txt"),
-    "utf8"
-  );
-
-  default_calc_table_content_sha256 = crypto
-    .createHash("sha256")
-    .update(default_calc_table_content, "utf8")
-    .digest("hex");
-
-  const inputBuffer = Buffer.from(default_calc_table_content);
-  default_calc_table_content_buf = zlib.deflateSync(inputBuffer);
-  // console.log("inputBuffer uc: ", inputBuffer);
-  // console.log("inputBuffer co: ", default_calc_table_content_buf);
-  // default_calc_table_content_buf = inputBuffer;
-} catch (err) {
-  console.error("FAILED TO LOAD DCTC ", err);
-}
+import {
+  default_calc_table_content_buf,
+  default_calc_table_content_sha256,
+} from "../common/defaults";
 
 const accountsControllers = {
   async register(req: any, res: any) {
     const { username, password } = req.body;
 
     // check if user exists:
-    let user_query: any = await execute_query(
+    let user_query: any = await execute_query_with_values(
       `SELECT username FROM accounts 
-        WHERE username='${username}'`
+        WHERE username=$1`,
+      [username]
     );
 
     if (user_query[0]) {
@@ -58,14 +35,16 @@ const accountsControllers = {
     const hash = bcrypt.hashSync(password, 10);
 
     // insert user data:
-    await execute_query(
-      `INSERT INTO accounts(username,password) VALUES('${username}','${hash}' )`
+    await execute_query_with_values(
+      `INSERT INTO accounts(username,password) VALUES($1,$2)`,
+      [username, hash]
     );
 
     // check if user was created properly:
-    user_query = await execute_query(
+    user_query = await execute_query_with_values(
       `SELECT id, username FROM accounts 
-        WHERE username='${username}'`
+        WHERE username=$1`,
+      [username]
     );
 
     if (!user_query[0].id)
@@ -75,14 +54,16 @@ const accountsControllers = {
       });
 
     // add sheet
-    await execute_query(
-      `INSERT INTO calc_sheets(account_id) VALUES(${user_query[0].id})`
+    await execute_query_with_values(
+      `INSERT INTO calc_sheets(account_id) VALUES($1)`,
+      [user_query[0].id]
     );
 
     // check if user was created properly:
-    const sheet_query = await execute_query(
+    const sheet_query = await execute_query_with_values(
       `SELECT id FROM calc_sheets 
-        WHERE account_id=${user_query[0].id}`
+        WHERE account_id=$1`,
+      [user_query[0].id]
     );
 
     if (!sheet_query[0].id)
@@ -91,13 +72,21 @@ const accountsControllers = {
         message: "cannot select sheet for further account creation",
       });
 
-    const query = `INSERT INTO calc_tables(calc_sheet_id, uncompressed_content_checksum, compressed_content) 
-VALUES(${
-      sheet_query[0].id
-    }, '${default_calc_table_content_sha256}',  decode('${default_calc_table_content_buf.toString(
-      "hex"
-    )}', 'hex') )`;
-    for (let i = 0; i < 3; i++) await execute_query(query);
+    //     const query = `INSERT INTO calc_tables(calc_sheet_id, uncompressed_content_checksum, compressed_content)
+    // VALUES(${
+    //       sheet_query[0].id
+    //     }, '${default_calc_table_content_sha256}',  decode('${default_calc_table_content_buf.toString(
+    //       "hex"
+    //     )}', 'hex') )`;
+    const query = `INSERT INTO calc_tables(calc_sheet_id, uncompressed_content_checksum, compressed_content) VALUES($1, $2,  decode($3, 'hex') )`;
+
+    for (let i = 0; i < 3; i++)
+      await execute_query_with_values(query, [
+        sheet_query[0].id,
+        default_calc_table_content_sha256,
+        default_calc_table_content_buf.toString("hex"),
+      ]);
+
     res.status(200).json({
       success: true,
       message: "account created",
@@ -108,9 +97,10 @@ VALUES(${
     const { username, password } = req.body;
 
     try {
-      const user_query: any = await execute_query(
+      const user_query: any = await execute_query_with_values(
         `SELECT id, username, password FROM accounts 
-        WHERE username='${username}'`
+        WHERE username=$1`,
+        [username]
       );
 
       const user: any = user_query[0];

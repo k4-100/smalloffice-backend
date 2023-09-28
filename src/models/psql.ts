@@ -38,6 +38,7 @@ const execute_query_with_values = async (
   query: string,
   values: any[]
 ): Promise<any> => {
+  // Promise<object | null> => {
   const client = new Client({
     user: PSQL_USERNAME,
     database: PSQL_DB,
@@ -45,7 +46,6 @@ const execute_query_with_values = async (
     host: PSQL_HOSTNAME,
     password: PSQL_PASSWORD,
   });
-  // Promise<object | null> => {
   await client.connect();
   // promise
   return await client
