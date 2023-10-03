@@ -1,19 +1,13 @@
 import express from "express";
 import zlib from "zlib";
-import { isAuth } from "../common/isAuth";
+// import { isAuth } from "../common/isAuth";
 import { execute_query_with_values } from "../models/psql";
+import { CustomRequest } from "../types/types";
 
 const calcControllers = {
-  async load(req: express.Request, res: express.Response) {
+  async load(req: any, res: express.Response) {
     try {
-      const userId = isAuth(req);
-      if (userId == null) {
-        res.status(500).json({
-          success: false,
-          message: "userID == null",
-        });
-      }
-
+      const { userId } = req;
       // convert_from(column_name, 'UTF8')
       const query_result: any[] = await execute_query_with_values(
         `SELECT calc_tables.id AS calc_tables_id, calc_sheets.id AS calc_sheets_id, calc_tables.uncompressed_content_checksum, calc_tables.compressed_content AS compressed_content
@@ -54,7 +48,7 @@ const calcControllers = {
     }
   },
 
-  async save(req: express.Request, res: express.Response) {
+  async save(req: any, res: express.Response) {
     // {
     //   id: 29,
     //   tables: [
@@ -65,14 +59,8 @@ const calcControllers = {
     //   mainTabID: 16
     // }
     try {
-      const userId = isAuth(req);
-      if (userId == null) {
-        res.status(500).json({
-          success: false,
-          message: "userID == null",
-        });
-      }
-
+      const { userId } = req;
+      console.log("userID in save: ", userId);
       // debugger;
       const deflated_tables: any[] = req.body.sheet.tables.map((tab: any) => {
         const { id } = tab;
@@ -115,7 +103,7 @@ const calcControllers = {
 
       res.status(200).json({
         success: true,
-        message: "loaded sheet successfully",
+        message: "saved sheet successfully",
       });
     } catch (err: any) {
       res.status(500).send({
