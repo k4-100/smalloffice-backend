@@ -15,9 +15,9 @@ import {
 } from "../common/defaults";
 
 const accountsControllers = {
-  async register(req: any, res: any) {
+  async register(req: any, res: any, next: any) {
     const { username, password } = req.body;
-
+    // next();
     // check if user exists:
     let user_query: any = await execute_query_with_values(
       `SELECT username FROM accounts 

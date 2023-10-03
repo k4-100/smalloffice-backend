@@ -31,12 +31,6 @@ const calcControllers = {
           userId,
         });
 
-      //   "fsafsa",
-      //   zlib
-      //     .inflateSync(zlib.deflateSync(query_result[0].compressed_content))
-      //     .toString("utf8")
-      // );
-
       const data = query_result.map((table) => {
         // debugger;
         const compressed_content_buffer = Buffer.from(table.compressed_content);
@@ -92,10 +86,6 @@ const calcControllers = {
         };
       });
 
-      // const passed_all: boolean = deflated_tables.every(async (tab) => {
-      //
-      // });
-
       const passed_all: boolean | unknown[] = await Promise.all([
         ...deflated_tables.map(
           (tab) =>
@@ -104,9 +94,6 @@ const calcControllers = {
                 `UPDATE calc_tables SET compressed_content = decode($1,'hex') WHERE id = $2`,
                 [tab.cells.toString("hex"), tab.id]
               )
-                // execute_query(
-                //   `UPDATE calc_tables SET compressed_content = E'\\${tab.cells}' WHERE id = ${tab.id}`
-                // )
                 .then((q_r) => {
                   if (!q_r) rej(false);
                   else {
@@ -138,30 +125,6 @@ const calcControllers = {
     }
     return;
   },
-
-  // app.get("/api/v1", (req, res) => {
-  //   res.status(200).json({
-  //     success: true,
-  //     message: "api root",
-  //   });
-  // });
-
-  // app.post("/protected", async (req, res) => {
-  //   try {
-  //     const userId = isAuth(req);
-  //     if (userId !== null) {
-  //       res.status(200).json({
-  //         success: true,
-  //         message: "This is protected data.",
-  //       });
-  //     }
-  //   } catch (err: any) {
-  //     res.send({
-  //       success: false,
-  //       error: `${err.message}`,
-  //     });
-  //   }
-  // });
 };
 
 export default calcControllers;

@@ -46,6 +46,7 @@ function shouldCompress(req: Request, res: Response) {
 
 app.use("/accounts", accountsRouter);
 app.use("/calc", calcRouter);
+app.use("/markdown", calcRouter);
 
 app.all("*", (_req, res) => {
   res.status(404).json({

@@ -33,3 +33,11 @@ Cookie: refreshtoken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1IiwiaW
 ########################################################
 POST http://127.0.0.1:5000/calc/load
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1OCIsImlhdCI6MTY4ODIzMzY1MSwiZXhwIjoxNjg4MjM1NDUxfQ.1q_xrLvLlaq198t8qnOmJrI2T5StbpMGDOL0zKjQSmo
+
+
+
+########################################################
+## MARKDOWN ROUTES
+########################################################
+POST http://127.0.0.1:5000/markdown/load
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1OCIsImlhdCI6MTY4ODIzMzY1MSwiZXhwIjoxNjg4MjM1NDUxfQ.1q_xrLvLlaq198t8qnOmJrI2T5StbpMGDOL0zKjQSmo

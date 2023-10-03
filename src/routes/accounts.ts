@@ -4,6 +4,7 @@ import accountsControllers from "../controllers/accounts";
 const accountsRouter = express.Router();
 
 accountsRouter.post("/register", accountsControllers.register);
+// accountsRouter.post("/register", accountsControllers.register);
 
 accountsRouter.post("/login", accountsControllers.login);
 
