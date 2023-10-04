@@ -23,3 +23,18 @@ try {
 } catch (err) {
   console.error("FAILED TO LOAD DCTC ", err);
 }
+
+let default_markdown_panel_content: string = "";
+export let default_markdown_panel_content_buf: Buffer;
+
+try {
+  default_markdown_panel_content = fs.readFileSync(
+    path.resolve("./assets/default_markdown_panel_content.txt"),
+    "utf8"
+  );
+  default_calc_table_content_buf = zlib.deflateSync(
+    Buffer.from(default_markdown_panel_content)
+  );
+} catch (err) {
+  console.error("FAILED TO LOAD DMPC ", err);
+}

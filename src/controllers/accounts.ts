@@ -15,9 +15,8 @@ import {
 } from "../common/defaults";
 
 const accountsControllers = {
-  async register(req: any, res: any, next: any) {
+  async register(req: any, res: any) {
     const { username, password } = req.body;
-    // next();
     // check if user exists:
     let user_query: any = await execute_query_with_values(
       `SELECT username FROM accounts 
@@ -53,39 +52,68 @@ const accountsControllers = {
         message: "cannot select user for further account creation",
       });
 
-    // add sheet
+    //#region calc
+
+    // add calc_sheet
     await execute_query_with_values(
       `INSERT INTO calc_sheets(account_id) VALUES($1)`,
       [user_query[0].id]
     );
 
-    // check if user was created properly:
-    const sheet_query = await execute_query_with_values(
+    // check if calc_sheet was created properly:
+    const calc_sheet_query = await execute_query_with_values(
       `SELECT id FROM calc_sheets 
         WHERE account_id=$1`,
       [user_query[0].id]
     );
 
-    if (!sheet_query[0].id)
+    if (!calc_sheet_query[0].id)
       return res.status(500).json({
         success: true,
         message: "cannot select sheet for further account creation",
       });
 
-    //     const query = `INSERT INTO calc_tables(calc_sheet_id, uncompressed_content_checksum, compressed_content)
-    // VALUES(${
-    //       sheet_query[0].id
-    //     }, '${default_calc_table_content_sha256}',  decode('${default_calc_table_content_buf.toString(
-    //       "hex"
-    //     )}', 'hex') )`;
-    const query = `INSERT INTO calc_tables(calc_sheet_id, uncompressed_content_checksum, compressed_content) VALUES($1, $2,  decode($3, 'hex') )`;
+    const calc_query = `INSERT INTO calc_tables(calc_sheet_id, uncompressed_content_checksum, compressed_content) VALUES($1, $2,  decode($3, 'hex') )`;
 
     for (let i = 0; i < 3; i++)
-      await execute_query_with_values(query, [
-        sheet_query[0].id,
+      await execute_query_with_values(calc_query, [
+        calc_sheet_query[0].id,
         default_calc_table_content_sha256,
         default_calc_table_content_buf.toString("hex"),
       ]);
+
+    //#endregion !calc
+
+    //#region markdown
+
+    // add markdown_sheet
+    await execute_query_with_values(
+      `INSERT INTO markdown_sheets(account_id) VALUES($1)`,
+      [user_query[0].id]
+    );
+
+    // check if calc_sheet was created properly:
+    const markdown_sheet_query = await execute_query_with_values(
+      `SELECT id FROM markdown_sheets
+        WHERE account_id=$1`,
+      [user_query[0].id]
+    );
+
+    if (!markdown_sheet_query[0].id)
+      return res.status(500).json({
+        success: true,
+        message: "cannot select sheet for further account creation",
+      });
+
+    const markdown_query = `INSERT INTO markdown_panels(markdown_sheet_id,  compressed_content) VALUES($1,  decode($2, 'hex') )`;
+
+    for (let i = 0; i < 3; i++)
+      await execute_query_with_values(markdown_query, [
+        markdown_sheet_query[0].id,
+        default_calc_table_content_buf.toString("hex"),
+      ]);
+
+    //#endregion !markdown
 
     res.status(200).json({
       success: true,
