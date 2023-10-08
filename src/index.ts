@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import compression from "compression";
 import accountsRouter from "./routes/accounts";
 import calcRouter from "./routes/calc";
+import markdownPanelsRouter from "./routes/markdownPanels";
 
 dotenv.config();
 
@@ -46,7 +47,7 @@ function shouldCompress(req: Request, res: Response) {
 
 app.use("/accounts", accountsRouter);
 app.use("/calc", calcRouter);
-app.use("/markdown", calcRouter);
+app.use("/markdown", markdownPanelsRouter);
 
 app.all("*", (_req, res) => {
   res.status(404).json({
