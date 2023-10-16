@@ -12,6 +12,7 @@ import jsonwebtoken from "jsonwebtoken";
 import {
   default_calc_table_content_buf,
   default_calc_table_content_sha256,
+  default_markdown_panel_content_buf,
 } from "../common/defaults";
 
 const accountsControllers = {
@@ -107,10 +108,11 @@ const accountsControllers = {
 
     const markdown_query = `INSERT INTO markdown_panels(markdown_sheet_id,  compressed_content) VALUES($1,  decode($2, 'hex') )`;
 
+    // debugger;
     for (let i = 0; i < 3; i++)
       await execute_query_with_values(markdown_query, [
         markdown_sheet_query[0].id,
-        default_calc_table_content_buf.toString("hex"),
+        default_markdown_panel_content_buf.toString("hex"),
       ]);
 
     //#endregion !markdown

@@ -32,7 +32,7 @@ try {
     path.resolve("./assets/default_markdown_panel_content.txt"),
     "utf8"
   );
-  default_calc_table_content_buf = zlib.deflateSync(
+  default_markdown_panel_content_buf = zlib.deflateSync(
     Buffer.from(default_markdown_panel_content)
   );
 } catch (err) {

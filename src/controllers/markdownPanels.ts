@@ -49,31 +49,23 @@ const markdownPanelsControllers = {
 
   async save(req: any, res: express.Response) {
     try {
-      const { userId } = req;
       // debugger;
-      const deflated_tables: any[] = req.body.sheet.tables.map((tab: any) => {
-        const { id } = tab;
-        const tab_no_id = tab;
-        delete tab_no_id.id;
+      const deflated_panels: any[] = req.body.panels.map((panel: any) => {
+        const { id, compressed_content } = panel;
         return {
-          cells: zlib.deflateSync(Buffer.from(JSON.stringify(tab_no_id))),
+          cells: zlib.deflateSync(Buffer.from(compressed_content)),
           id,
         };
       });
-      // const passed_all: boolean = deflated_tables.every(async (tab) => {
-      //
-      // });
+
       const passed_all: boolean | unknown[] = await Promise.all([
-        ...deflated_tables.map(
+        ...deflated_panels.map(
           (tab) =>
             new Promise((res, rej) => {
               execute_query_with_values(
                 `UPDATE markdown_panels SET compressed_content = decode($1,'hex') WHERE id = $2`,
                 [tab.cells.toString("hex"), tab.id]
               )
-                // execute_query(
-                //   `UPDATE calc_tables SET compressed_content = E'\\${tab.cells}' WHERE id = ${tab.id}`
-                // )
                 .then((q_r) => {
                   if (!q_r) rej(false);
                   else {
@@ -89,16 +81,16 @@ const markdownPanelsControllers = {
       if (!passed_all)
         return res.status(500).json({
           success: true,
-          message: "failed to save tables",
+          message: "failed to save panels",
         });
       res.status(200).json({
         success: true,
-        message: "loaded sheet successfully",
+        message: "loaded markdownSheet successfully",
       });
     } catch (err: any) {
       res.status(500).send({
         success: false,
-        message: `error while loading sheet ${err.message}`,
+        message: `error while loading markdownSheet ${err.message}`,
       });
     }
     return;
