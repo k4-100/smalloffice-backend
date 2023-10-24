@@ -13,7 +13,8 @@ const markdownPanelsControllers = {
             FROM markdown_panels, markdown_sheets, accounts
             WHERE accounts.id = $1
             AND accounts.id = markdown_sheets.account_id
-            AND markdown_sheets.id = markdown_panels.markdown_sheet_id;`,
+            AND markdown_sheets.id = markdown_panels.markdown_sheet_id
+            ORDER BY markdown_panels.id ASC;`,
         [userId]
       );
       if (!query_result)
@@ -33,7 +34,7 @@ const markdownPanelsControllers = {
         };
         return newObj;
       });
-
+      debugger;
       res.status(200).json({
         success: true,
         message: "loaded sheet successfully",
