@@ -5,4 +5,3 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 const fakeDB = [];
 exports.default = fakeDB;
-//# sourceMappingURL=fakeDB.js.map

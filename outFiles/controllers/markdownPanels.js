@@ -12,33 +12,34 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const zlib_1 = __importDefault(require("zlib"));
-// import { isAuth } from "../common/isAuth";
 const psql_1 = require("../models/psql");
-const calcControllers = {
+const zlib_1 = __importDefault(require("zlib"));
+const markdownPanelsControllers = {
     load(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { userId } = req;
                 // convert_from(column_name, 'UTF8')
-                const query_result = yield (0, psql_1.execute_query_with_values)(`SELECT calc_tables.id AS calc_tables_id, calc_sheets.id AS calc_sheets_id, calc_tables.uncompressed_content_checksum, calc_tables.compressed_content AS compressed_content
-            FROM calc_tables, calc_sheets, accounts 
+                const query_result = yield (0, psql_1.execute_query_with_values)(`SELECT markdown_panels.id AS markdown_panels_id, markdown_sheets.id AS markdown_sheets_id, markdown_panels.compressed_content AS compressed_content
+            FROM markdown_panels, markdown_sheets, accounts
             WHERE accounts.id = $1
-            AND accounts.id = calc_sheets.account_id
-            AND calc_sheets.id = calc_tables.calc_sheet_id`, [userId]);
+            AND accounts.id = markdown_sheets.account_id
+            AND markdown_sheets.id = markdown_panels.markdown_sheet_id
+            ORDER BY markdown_panels.id ASC;`, [userId]);
                 if (!query_result)
                     res.status(500).json({
                         success: false,
                         message: "query is null",
                         userId,
                     });
-                const data = query_result.map((table) => {
+                const data = query_result.map((panel) => {
                     // debugger;
-                    const compressed_content_buffer = Buffer.from(table.compressed_content);
+                    const compressed_content_buffer = Buffer.from(panel.compressed_content);
                     const inflated = zlib_1.default.inflateSync(compressed_content_buffer);
-                    const newObj = Object.assign(Object.assign({}, table), { compressed_content: inflated.toString("utf8") });
+                    const newObj = Object.assign(Object.assign({}, panel), { compressed_content: inflated.toString("utf8") });
                     return newObj;
                 });
+                debugger;
                 res.status(200).json({
                     success: true,
                     message: "loaded sheet successfully",
@@ -55,31 +56,18 @@ const calcControllers = {
     },
     save(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            // {
-            //   id: 29,
-            //   tables: [
-            //     { cells: [Array], id: 16 },
-            //     { cells: [Array], id: 17 },
-            //     { cells: [Array], id: 18 }
-            //   ],
-            //   mainTabID: 16
-            // }
             try {
-                const { userId } = req;
-                console.log("userID in save: ", userId);
                 // debugger;
-                const deflated_tables = req.body.sheet.tables.map((tab) => {
-                    const { id } = tab;
-                    const tab_no_id = tab;
-                    delete tab_no_id.id;
+                const deflated_panels = req.body.panels.map((panel) => {
+                    const { id, compressed_content } = panel;
                     return {
-                        cells: zlib_1.default.deflateSync(Buffer.from(JSON.stringify(tab_no_id))),
+                        cells: zlib_1.default.deflateSync(Buffer.from(compressed_content)),
                         id,
                     };
                 });
                 const passed_all = yield Promise.all([
-                    ...deflated_tables.map((tab) => new Promise((res, rej) => {
-                        (0, psql_1.execute_query_with_values)(`UPDATE calc_tables SET compressed_content = decode($1,'hex') WHERE id = $2`, [tab.cells.toString("hex"), tab.id])
+                    ...deflated_panels.map((tab) => new Promise((res, rej) => {
+                        (0, psql_1.execute_query_with_values)(`UPDATE markdown_panels SET compressed_content = decode($1,'hex') WHERE id = $2`, [tab.cells.toString("hex"), tab.id])
                             .then((q_r) => {
                             if (!q_r)
                                 rej(false);
@@ -95,21 +83,21 @@ const calcControllers = {
                 if (!passed_all)
                     return res.status(500).json({
                         success: true,
-                        message: "failed to save tables",
+                        message: "failed to save panels",
                     });
                 res.status(200).json({
                     success: true,
-                    message: "saved sheet successfully",
+                    message: "loaded markdownSheet successfully",
                 });
             }
             catch (err) {
                 res.status(500).send({
                     success: false,
-                    message: `error while loading sheet ${err.message}`,
+                    message: `error while loading markdownSheet ${err.message}`,
                 });
             }
             return;
         });
     },
 };
-exports.default = calcControllers;
+exports.default = markdownPanelsControllers;

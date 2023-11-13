@@ -46,6 +46,7 @@ const execute_query = (query) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.execute_query = execute_query;
 const execute_query_with_values = (query, values) => __awaiter(void 0, void 0, void 0, function* () {
+    // Promise<object | null> => {
     const client = new pg_1.Client({
         user: PSQL_USERNAME,
         database: PSQL_DB,
@@ -53,7 +54,6 @@ const execute_query_with_values = (query, values) => __awaiter(void 0, void 0, v
         host: PSQL_HOSTNAME,
         password: PSQL_PASSWORD,
     });
-    // Promise<object | null> => {
     yield client.connect();
     // promise
     return yield client
@@ -68,4 +68,3 @@ const execute_query_with_values = (query, values) => __awaiter(void 0, void 0, v
     });
 });
 exports.execute_query_with_values = execute_query_with_values;
-//# sourceMappingURL=psql.js.map

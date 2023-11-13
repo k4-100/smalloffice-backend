@@ -17,33 +17,14 @@ const fakeDB_1 = __importDefault(require("../models/fakeDB"));
 const psql_1 = require("../models/psql");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const fs_1 = __importDefault(require("fs"));
-const path_1 = __importDefault(require("path"));
-const zlib_1 = __importDefault(require("zlib"));
-const crypto_1 = __importDefault(require("crypto"));
-let default_calc_table_content = "";
-let default_calc_table_content_buf;
-let default_calc_table_content_sha256 = "";
-try {
-    default_calc_table_content = fs_1.default.readFileSync(path_1.default.resolve("./assets/default_calc_table_content.txt"), "utf8");
-    default_calc_table_content_sha256 = crypto_1.default
-        .createHash("sha256")
-        .update(default_calc_table_content, "utf8")
-        .digest("hex");
-    const inputBuffer = Buffer.from(default_calc_table_content);
-    default_calc_table_content_buf = zlib_1.default.deflateSync(inputBuffer);
-    default_calc_table_content_buf = inputBuffer;
-}
-catch (err) {
-    console.error("FAILED TO LOAD DCTC ", err);
-}
+const defaults_1 = require("../common/defaults");
 const accountsControllers = {
     register(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { username, password } = req.body;
             // check if user exists:
-            let user_query = yield (0, psql_1.execute_query)(`SELECT username FROM accounts 
-        WHERE username='${username}'`);
+            let user_query = yield (0, psql_1.execute_query_with_values)(`SELECT username FROM accounts 
+        WHERE username=$1`, [username]);
             if (user_query[0]) {
                 return res.status(409).json({
                     success: false,
@@ -52,35 +33,53 @@ const accountsControllers = {
             }
             const hash = bcrypt_1.default.hashSync(password, 10);
             // insert user data:
-            yield (0, psql_1.execute_query)(`INSERT INTO accounts(username,password) VALUES('${username}','${hash}' )`);
+            yield (0, psql_1.execute_query_with_values)(`INSERT INTO accounts(username,password) VALUES($1,$2)`, [username, hash]);
             // check if user was created properly:
-            user_query = yield (0, psql_1.execute_query)(`SELECT id, username FROM accounts 
-        WHERE username='${username}'`);
+            user_query = yield (0, psql_1.execute_query_with_values)(`SELECT id, username FROM accounts 
+        WHERE username=$1`, [username]);
             if (!user_query[0].id)
                 return res.status(500).json({
                     success: true,
                     message: "cannot select user for further account creation",
                 });
-            // add sheet
-            yield (0, psql_1.execute_query)(`INSERT INTO calc_sheets(account_id) VALUES(${user_query[0].id})`);
-            // check if user was created properly:
-            const sheet_query = yield (0, psql_1.execute_query)(`SELECT id FROM calc_sheets 
-        WHERE account_id=${user_query[0].id}`);
-            if (!sheet_query[0].id)
+            //#region calc
+            // add calc_sheet
+            yield (0, psql_1.execute_query_with_values)(`INSERT INTO calc_sheets(account_id) VALUES($1)`, [user_query[0].id]);
+            // check if calc_sheet was created properly:
+            const calc_sheet_query = yield (0, psql_1.execute_query_with_values)(`SELECT id FROM calc_sheets 
+        WHERE account_id=$1`, [user_query[0].id]);
+            if (!calc_sheet_query[0].id)
                 return res.status(500).json({
                     success: true,
                     message: "cannot select sheet for further account creation",
                 });
-            //     const query = `INSERT INTO calc_tables(calc_sheet_id, uncompressed_content_checksum, compressed_content)
-            // VALUES(${
-            //       sheet_query[0].id
-            //     }, '${default_calc_table_content_sha256}',  E'\\x${default_calc_table_content_buf.toString(
-            //       "hex"
-            //     )}' )`;
-            const query = `INSERT INTO calc_tables(calc_sheet_id, uncompressed_content_checksum, compressed_content) 
-VALUES(${sheet_query[0].id}, '${default_calc_table_content_sha256}',  E'\\${default_calc_table_content_buf}' )`;
+            const calc_query = `INSERT INTO calc_tables(calc_sheet_id, uncompressed_content_checksum, compressed_content) VALUES($1, $2,  decode($3, 'hex') )`;
             for (let i = 0; i < 3; i++)
-                yield (0, psql_1.execute_query)(query);
+                yield (0, psql_1.execute_query_with_values)(calc_query, [
+                    calc_sheet_query[0].id,
+                    defaults_1.default_calc_table_content_sha256,
+                    defaults_1.default_calc_table_content_buf.toString("hex"),
+                ]);
+            //#endregion !calc
+            //#region markdown
+            // add markdown_sheet
+            yield (0, psql_1.execute_query_with_values)(`INSERT INTO markdown_sheets(account_id) VALUES($1)`, [user_query[0].id]);
+            // check if calc_sheet was created properly:
+            const markdown_sheet_query = yield (0, psql_1.execute_query_with_values)(`SELECT id FROM markdown_sheets
+        WHERE account_id=$1`, [user_query[0].id]);
+            if (!markdown_sheet_query[0].id)
+                return res.status(500).json({
+                    success: true,
+                    message: "cannot select sheet for further account creation",
+                });
+            const markdown_query = `INSERT INTO markdown_panels(markdown_sheet_id,  compressed_content) VALUES($1,  decode($2, 'hex') )`;
+            // debugger;
+            for (let i = 0; i < 3; i++)
+                yield (0, psql_1.execute_query_with_values)(markdown_query, [
+                    markdown_sheet_query[0].id,
+                    defaults_1.default_markdown_panel_content_buf.toString("hex"),
+                ]);
+            //#endregion !markdown
             res.status(200).json({
                 success: true,
                 message: "account created",
@@ -91,8 +90,8 @@ VALUES(${sheet_query[0].id}, '${default_calc_table_content_sha256}',  E'\\${defa
         return __awaiter(this, void 0, void 0, function* () {
             const { username, password } = req.body;
             try {
-                const user_query = yield (0, psql_1.execute_query)(`SELECT id, username, password FROM accounts 
-        WHERE username='${username}'`);
+                const user_query = yield (0, psql_1.execute_query_with_values)(`SELECT id, username, password FROM accounts 
+        WHERE username=$1`, [username]);
                 const user = user_query[0];
                 // checks if user is in db
                 if (!user) {
@@ -172,8 +171,11 @@ VALUES(${sheet_query[0].id}, '${default_calc_table_content_sha256}',  E'\\${defa
                 message: "!user",
                 accesstoken: "",
             });
+        // console.log("user: ", user);
         // user exists, check if refreshtoken exists on user
         if (user.refreshtoken !== token) {
+            // console.log("fakeDB: ", fakeDB);
+            // console.log("user: ", user, " token: ", token);
             return res.status(403).send({
                 success: false,
                 message: "user.refreshtoken !== token",
@@ -209,4 +211,3 @@ VALUES(${sheet_query[0].id}, '${default_calc_table_content_sha256}',  E'\\${defa
     //
 };
 exports.default = accountsControllers;
-//# sourceMappingURL=accounts.js.map

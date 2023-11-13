@@ -10,6 +10,7 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const compression_1 = __importDefault(require("compression"));
 const accounts_1 = __importDefault(require("./routes/accounts"));
 const calc_1 = __importDefault(require("./routes/calc"));
+const markdownPanels_1 = __importDefault(require("./routes/markdownPanels"));
 dotenv_1.default.config();
 const { env } = process;
 const NODE_HOSTNAME = env.NODE_HOSTNAME || "127.0.0.1";
@@ -38,6 +39,7 @@ function shouldCompress(req, res) {
 }
 app.use("/accounts", accounts_1.default);
 app.use("/calc", calc_1.default);
+app.use("/markdown", markdownPanels_1.default);
 app.all("*", (_req, res) => {
     res.status(404).json({
         success: false,
@@ -47,4 +49,3 @@ app.all("*", (_req, res) => {
 app.listen(NODE_PORT, NODE_HOSTNAME, () => {
     console.log(`Listening at ${NODE_HOSTNAME}:${NODE_PORT}`);
 });
-//# sourceMappingURL=index.js.map

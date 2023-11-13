@@ -20,4 +20,3 @@ const isAuth = (req) => {
     return userId;
 };
 exports.isAuth = isAuth;
-//# sourceMappingURL=isAuth.js.map

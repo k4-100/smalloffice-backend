@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --exec node --inspect=0.0.0.0:9229 --require ts-node/register  ./src/index.ts --declaration",
-    "build-debug": "tsc --outDir outFiles --sourceMap",
-    "build": "tsc --outDir outFiles"
+    "build": "tsc --outDir outFiles",
+    "build-docker": "tsc",
+    "build-debug": "tsc --outDir outFiles --sourceMap"
   },
   "keywords": [],
   "author": "",

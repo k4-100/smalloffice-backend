@@ -33,4 +33,3 @@ const sendRefreshToken = (res, refreshtoken) => {
     });
 };
 exports.sendRefreshToken = sendRefreshToken;
-//# sourceMappingURL=token.js.map
