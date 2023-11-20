@@ -6,13 +6,7 @@ import compression from "compression";
 import accountsRouter from "./routes/accounts";
 import calcRouter from "./routes/calc";
 import markdownPanelsRouter from "./routes/markdownPanels";
-
-dotenv.config();
-
-const { env } = process;
-
-const NODE_HOSTNAME: string = env.NODE_HOSTNAME || "127.0.0.1";
-const NODE_PORT: number = Number(env.NODE_PORT) || 5000;
+import { NODE_HOSTNAME, NODE_PORT } from "./common/constant";
 
 const app = express();
 

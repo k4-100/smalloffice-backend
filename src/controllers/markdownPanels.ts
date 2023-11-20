@@ -34,7 +34,6 @@ const markdownPanelsControllers = {
         };
         return newObj;
       });
-      debugger;
       res.status(200).json({
         success: true,
         message: "loaded sheet successfully",
