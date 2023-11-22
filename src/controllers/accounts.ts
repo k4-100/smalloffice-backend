@@ -14,13 +14,14 @@ import {
   default_calc_table_content_sha256,
   default_markdown_panel_content_buf,
 } from "../common/defaults";
+import { PSQL_DEFAULT_SCHEMA } from "../common/constant";
 
 const accountsControllers = {
   async register(req: any, res: any) {
     const { username, password } = req.body;
     // check if user exists:
     let user_query: any = await execute_query_with_values(
-      `SELECT username FROM accounts 
+      `SELECT username FROM ${PSQL_DEFAULT_SCHEMA}.accounts 
         WHERE username=$1`,
       [username]
     );
@@ -35,13 +36,13 @@ const accountsControllers = {
 
     // insert user data:
     await execute_query_with_values(
-      `INSERT INTO accounts(username,password) VALUES($1,$2)`,
+      `INSERT INTO ${PSQL_DEFAULT_SCHEMA}.accounts(username,password) VALUES($1,$2)`,
       [username, hash]
     );
 
     // check if user was created properly:
     user_query = await execute_query_with_values(
-      `SELECT id, username FROM accounts 
+      `SELECT id, username FROM ${PSQL_DEFAULT_SCHEMA}.accounts 
         WHERE username=$1`,
       [username]
     );
@@ -56,13 +57,13 @@ const accountsControllers = {
 
     // add calc_sheet
     await execute_query_with_values(
-      `INSERT INTO calc_sheets(account_id) VALUES($1)`,
+      `INSERT INTO ${PSQL_DEFAULT_SCHEMA}.calc_sheets(account_id) VALUES($1)`,
       [user_query[0].id]
     );
 
     // check if calc_sheet was created properly:
     const calc_sheet_query = await execute_query_with_values(
-      `SELECT id FROM calc_sheets 
+      `SELECT id FROM ${PSQL_DEFAULT_SCHEMA}.calc_sheets 
         WHERE account_id=$1`,
       [user_query[0].id]
     );
@@ -73,7 +74,7 @@ const accountsControllers = {
         message: "cannot select sheet for further account creation",
       });
 
-    const calc_query = `INSERT INTO calc_tables(calc_sheet_id, uncompressed_content_checksum, compressed_content) VALUES($1, $2,  decode($3, 'hex') )`;
+    const calc_query = `INSERT INTO ${PSQL_DEFAULT_SCHEMA}.calc_tables(calc_sheet_id, uncompressed_content_checksum, compressed_content) VALUES($1, $2,  decode($3, 'hex') )`;
 
     for (let i = 0; i < 3; i++)
       await execute_query_with_values(calc_query, [
@@ -88,13 +89,13 @@ const accountsControllers = {
 
     // add markdown_sheet
     await execute_query_with_values(
-      `INSERT INTO markdown_sheets(account_id) VALUES($1)`,
+      `INSERT INTO ${PSQL_DEFAULT_SCHEMA}.markdown_sheets(account_id) VALUES($1)`,
       [user_query[0].id]
     );
 
     // check if calc_sheet was created properly:
     const markdown_sheet_query = await execute_query_with_values(
-      `SELECT id FROM markdown_sheets
+      `SELECT id FROM ${PSQL_DEFAULT_SCHEMA}.markdown_sheets
         WHERE account_id=$1`,
       [user_query[0].id]
     );
@@ -105,7 +106,7 @@ const accountsControllers = {
         message: "cannot select sheet for further account creation",
       });
 
-    const markdown_query = `INSERT INTO markdown_panels(markdown_sheet_id,  compressed_content) VALUES($1,  decode($2, 'hex') )`;
+    const markdown_query = `INSERT INTO ${PSQL_DEFAULT_SCHEMA}.markdown_panels(markdown_sheet_id,  compressed_content) VALUES($1,  decode($2, 'hex') )`;
 
     // debugger;
     for (let i = 0; i < 3; i++)
@@ -127,7 +128,7 @@ const accountsControllers = {
 
     try {
       const user_query: any = await execute_query_with_values(
-        `SELECT id, username, password FROM accounts 
+        `SELECT id, username, password FROM ${PSQL_DEFAULT_SCHEMA}.accounts 
         WHERE username=$1`,
         [username]
       );

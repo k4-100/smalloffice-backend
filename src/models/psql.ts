@@ -18,11 +18,7 @@ import {
 // const PSQL_USERNAME: string = env.PSQL_USERNAME || "";
 // const PSQL_PASSWORD: string = env.PSQL_PASSWORD || "";
 
-console.log(PSQL_DB);
 console.log(PSQL_HOSTNAME);
-console.log(PSQL_PASSWORD);
-console.log(PSQL_PORT);
-console.log(PSQL_USERNAME);
 
 const execute_query = async (query: string): Promise<any> => {
   const client = new Client({

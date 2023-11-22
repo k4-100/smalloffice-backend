@@ -1,6 +1,15 @@
 import dotenv from "dotenv";
+import path from "path";
 
-dotenv.config();
+const NODE_ENV: string =
+  process.env.NODE_ENV === "docker" ? "docker" : "default";
+if (NODE_ENV === "docker")
+  dotenv.config({ path: path.join(__dirname, `./.env.${NODE_ENV}`) });
+else NODE_ENV === "docker";
+dotenv.config({ path: path.join(__dirname, `../../.env.${NODE_ENV}`) });
+
+// console.log(path.join(__dirname, `../../.env.${NODE_ENV}`));
+console.log(process.env.NODE_ENV);
 
 const { env } = process;
 
