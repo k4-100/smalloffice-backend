@@ -2,6 +2,7 @@ import express from "express";
 import { isAuth } from "../common/isAuth";
 import { execute_query_with_values } from "../models/psql";
 import zlib from "zlib";
+import { PSQL_DEFAULT_SCHEMA } from "../common/constant";
 
 const markdownPanelsControllers = {
   async load(req: any, res: express.Response) {
@@ -9,12 +10,12 @@ const markdownPanelsControllers = {
       const { userId } = req;
       // convert_from(column_name, 'UTF8')
       const query_result: any[] = await execute_query_with_values(
-        `SELECT markdown_panels.id AS markdown_panels_id, markdown_sheets.id AS markdown_sheets_id, markdown_panels.compressed_content AS compressed_content
-            FROM markdown_panels, markdown_sheets, accounts
-            WHERE accounts.id = $1
-            AND accounts.id = markdown_sheets.account_id
-            AND markdown_sheets.id = markdown_panels.markdown_sheet_id
-            ORDER BY markdown_panels.id ASC;`,
+        `SELECT ${PSQL_DEFAULT_SCHEMA}.markdown_panels.id AS markdown_panels_id, ${PSQL_DEFAULT_SCHEMA}.markdown_sheets.id AS markdown_sheets_id, ${PSQL_DEFAULT_SCHEMA}.markdown_panels.compressed_content AS compressed_content
+            FROM ${PSQL_DEFAULT_SCHEMA}.markdown_panels, ${PSQL_DEFAULT_SCHEMA}.markdown_sheets, ${PSQL_DEFAULT_SCHEMA}.accounts
+            WHERE ${PSQL_DEFAULT_SCHEMA}.accounts.id = $1
+            AND ${PSQL_DEFAULT_SCHEMA}.accounts.id = markdown_sheets.account_id
+            AND ${PSQL_DEFAULT_SCHEMA}.markdown_sheets.id = markdown_panels.markdown_sheet_id
+            ORDER BY ${PSQL_DEFAULT_SCHEMA}.markdown_panels.id ASC;`,
         [userId]
       );
       if (!query_result)
@@ -63,7 +64,7 @@ const markdownPanelsControllers = {
           (tab) =>
             new Promise((res, rej) => {
               execute_query_with_values(
-                `UPDATE markdown_panels SET compressed_content = decode($1,'hex') WHERE id = $2`,
+                `UPDATE ${PSQL_DEFAULT_SCHEMA}.markdown_panels SET compressed_content = decode($1,'hex') WHERE id = $2`,
                 [tab.cells.toString("hex"), tab.id]
               )
                 .then((q_r) => {

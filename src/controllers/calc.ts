@@ -3,6 +3,7 @@ import zlib from "zlib";
 // import { isAuth } from "../common/isAuth";
 import { execute_query_with_values } from "../models/psql";
 import { CustomRequest } from "../types/types";
+import { PSQL_DEFAULT_SCHEMA } from "../common/constant";
 
 const calcControllers = {
   async load(req: any, res: express.Response) {
@@ -10,11 +11,11 @@ const calcControllers = {
       const { userId } = req;
       // convert_from(column_name, 'UTF8')
       const query_result: any[] = await execute_query_with_values(
-        `SELECT calc_tables.id AS calc_tables_id, calc_sheets.id AS calc_sheets_id, calc_tables.uncompressed_content_checksum, calc_tables.compressed_content AS compressed_content
-            FROM calc_tables, calc_sheets, accounts 
-            WHERE accounts.id = $1
-            AND accounts.id = calc_sheets.account_id
-            AND calc_sheets.id = calc_tables.calc_sheet_id`,
+        `SELECT  ${PSQL_DEFAULT_SCHEMA}.calc_tables.id AS calc_tables_id,  ${PSQL_DEFAULT_SCHEMA}.calc_sheets.id AS calc_sheets_id,  ${PSQL_DEFAULT_SCHEMA}.calc_tables.uncompressed_content_checksum,${PSQL_DEFAULT_SCHEMA}.calc_tables.compressed_content AS compressed_content
+            FROM ${PSQL_DEFAULT_SCHEMA}.calc_tables, ${PSQL_DEFAULT_SCHEMA}.calc_sheets, ${PSQL_DEFAULT_SCHEMA}.accounts 
+            WHERE ${PSQL_DEFAULT_SCHEMA}.accounts.id = $1
+            AND ${PSQL_DEFAULT_SCHEMA}.accounts.id = calc_sheets.account_id
+            AND ${PSQL_DEFAULT_SCHEMA}.calc_sheets.id = calc_tables.calc_sheet_id`,
         [userId]
       );
 
@@ -79,7 +80,7 @@ const calcControllers = {
           (tab) =>
             new Promise((res, rej) => {
               execute_query_with_values(
-                `UPDATE calc_tables SET compressed_content = decode($1,'hex') WHERE id = $2`,
+                `UPDATE ${PSQL_DEFAULT_SCHEMA}.calc_tables SET compressed_content = decode($1,'hex') WHERE id = $2`,
                 [tab.cells.toString("hex"), tab.id]
               )
                 .then((q_r) => {
