@@ -8,27 +8,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.execute_query_with_values = exports.execute_query = void 0;
 const pg_1 = require("pg");
-const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
-const { env } = process;
-const PSQL_HOSTNAME = env.PSQL_HOSTNAME || "127.0.0.1";
-const PSQL_PORT = Number(env.PSQL_PORT) || 5432;
-const PSQL_DB = env.PSQL_DB || "";
-const PSQL_USERNAME = env.PSQL_USERNAME || "";
-const PSQL_PASSWORD = env.PSQL_PASSWORD || "";
+const constant_1 = require("../common/constant");
+// dotenv.config();
+// const { env } = process;
+// const PSQL_HOSTNAME: string = env.PSQL_HOSTNAME || "127.0.0.1";
+// const PSQL_PORT: number = Number(env.PSQL_PORT) || 5432;
+// const PSQL_DB: string = env.PSQL_DB || "";
+// const PSQL_USERNAME: string = env.PSQL_USERNAME || "";
+// const PSQL_PASSWORD: string = env.PSQL_PASSWORD || "";
+console.log(constant_1.PSQL_HOSTNAME);
 const execute_query = (query) => __awaiter(void 0, void 0, void 0, function* () {
     const client = new pg_1.Client({
-        user: PSQL_USERNAME,
-        database: PSQL_DB,
-        port: PSQL_PORT,
-        host: PSQL_HOSTNAME,
-        password: PSQL_PASSWORD,
+        user: constant_1.PSQL_USERNAME,
+        database: constant_1.PSQL_DB,
+        port: constant_1.PSQL_PORT,
+        host: constant_1.PSQL_HOSTNAME,
+        password: constant_1.PSQL_PASSWORD,
     });
     // Promise<object | null> => {
     yield client.connect();
@@ -48,11 +46,11 @@ exports.execute_query = execute_query;
 const execute_query_with_values = (query, values) => __awaiter(void 0, void 0, void 0, function* () {
     // Promise<object | null> => {
     const client = new pg_1.Client({
-        user: PSQL_USERNAME,
-        database: PSQL_DB,
-        port: PSQL_PORT,
-        host: PSQL_HOSTNAME,
-        password: PSQL_PASSWORD,
+        user: constant_1.PSQL_USERNAME,
+        database: constant_1.PSQL_DB,
+        port: constant_1.PSQL_PORT,
+        host: constant_1.PSQL_HOSTNAME,
+        password: constant_1.PSQL_PASSWORD,
     });
     yield client.connect();
     // promise

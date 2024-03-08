@@ -14,18 +14,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const psql_1 = require("../models/psql");
 const zlib_1 = __importDefault(require("zlib"));
+const constant_1 = require("../common/constant");
 const markdownPanelsControllers = {
     load(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { userId } = req;
                 // convert_from(column_name, 'UTF8')
-                const query_result = yield (0, psql_1.execute_query_with_values)(`SELECT markdown_panels.id AS markdown_panels_id, markdown_sheets.id AS markdown_sheets_id, markdown_panels.compressed_content AS compressed_content
-            FROM markdown_panels, markdown_sheets, accounts
-            WHERE accounts.id = $1
-            AND accounts.id = markdown_sheets.account_id
-            AND markdown_sheets.id = markdown_panels.markdown_sheet_id
-            ORDER BY markdown_panels.id ASC;`, [userId]);
+                const query_result = yield (0, psql_1.execute_query_with_values)(`SELECT ${constant_1.PSQL_DEFAULT_SCHEMA}.markdown_panels.id AS markdown_panels_id, ${constant_1.PSQL_DEFAULT_SCHEMA}.markdown_sheets.id AS markdown_sheets_id, ${constant_1.PSQL_DEFAULT_SCHEMA}.markdown_panels.compressed_content AS compressed_content
+            FROM ${constant_1.PSQL_DEFAULT_SCHEMA}.markdown_panels, ${constant_1.PSQL_DEFAULT_SCHEMA}.markdown_sheets, ${constant_1.PSQL_DEFAULT_SCHEMA}.accounts
+            WHERE ${constant_1.PSQL_DEFAULT_SCHEMA}.accounts.id = $1
+            AND ${constant_1.PSQL_DEFAULT_SCHEMA}.accounts.id = markdown_sheets.account_id
+            AND ${constant_1.PSQL_DEFAULT_SCHEMA}.markdown_sheets.id = markdown_panels.markdown_sheet_id
+            ORDER BY ${constant_1.PSQL_DEFAULT_SCHEMA}.markdown_panels.id ASC;`, [userId]);
                 if (!query_result)
                     res.status(500).json({
                         success: false,
@@ -39,7 +40,6 @@ const markdownPanelsControllers = {
                     const newObj = Object.assign(Object.assign({}, panel), { compressed_content: inflated.toString("utf8") });
                     return newObj;
                 });
-                debugger;
                 res.status(200).json({
                     success: true,
                     message: "loaded sheet successfully",
@@ -67,7 +67,7 @@ const markdownPanelsControllers = {
                 });
                 const passed_all = yield Promise.all([
                     ...deflated_panels.map((tab) => new Promise((res, rej) => {
-                        (0, psql_1.execute_query_with_values)(`UPDATE markdown_panels SET compressed_content = decode($1,'hex') WHERE id = $2`, [tab.cells.toString("hex"), tab.id])
+                        (0, psql_1.execute_query_with_values)(`UPDATE ${constant_1.PSQL_DEFAULT_SCHEMA}.markdown_panels SET compressed_content = decode($1,'hex') WHERE id = $2`, [tab.cells.toString("hex"), tab.id])
                             .then((q_r) => {
                             if (!q_r)
                                 rej(false);

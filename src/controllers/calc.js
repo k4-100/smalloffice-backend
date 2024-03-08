@@ -15,17 +15,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const zlib_1 = __importDefault(require("zlib"));
 // import { isAuth } from "../common/isAuth";
 const psql_1 = require("../models/psql");
+const constant_1 = require("../common/constant");
 const calcControllers = {
     load(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { userId } = req;
                 // convert_from(column_name, 'UTF8')
-                const query_result = yield (0, psql_1.execute_query_with_values)(`SELECT calc_tables.id AS calc_tables_id, calc_sheets.id AS calc_sheets_id, calc_tables.uncompressed_content_checksum, calc_tables.compressed_content AS compressed_content
-            FROM calc_tables, calc_sheets, accounts 
-            WHERE accounts.id = $1
-            AND accounts.id = calc_sheets.account_id
-            AND calc_sheets.id = calc_tables.calc_sheet_id`, [userId]);
+                const query_result = yield (0, psql_1.execute_query_with_values)(`SELECT  ${constant_1.PSQL_DEFAULT_SCHEMA}.calc_tables.id AS calc_tables_id,  ${constant_1.PSQL_DEFAULT_SCHEMA}.calc_sheets.id AS calc_sheets_id,  ${constant_1.PSQL_DEFAULT_SCHEMA}.calc_tables.uncompressed_content_checksum,${constant_1.PSQL_DEFAULT_SCHEMA}.calc_tables.compressed_content AS compressed_content
+            FROM ${constant_1.PSQL_DEFAULT_SCHEMA}.calc_tables, ${constant_1.PSQL_DEFAULT_SCHEMA}.calc_sheets, ${constant_1.PSQL_DEFAULT_SCHEMA}.accounts 
+            WHERE ${constant_1.PSQL_DEFAULT_SCHEMA}.accounts.id = $1
+            AND ${constant_1.PSQL_DEFAULT_SCHEMA}.accounts.id = calc_sheets.account_id
+            AND ${constant_1.PSQL_DEFAULT_SCHEMA}.calc_sheets.id = calc_tables.calc_sheet_id`, [userId]);
                 if (!query_result)
                     res.status(500).json({
                         success: false,
@@ -79,7 +80,7 @@ const calcControllers = {
                 });
                 const passed_all = yield Promise.all([
                     ...deflated_tables.map((tab) => new Promise((res, rej) => {
-                        (0, psql_1.execute_query_with_values)(`UPDATE calc_tables SET compressed_content = decode($1,'hex') WHERE id = $2`, [tab.cells.toString("hex"), tab.id])
+                        (0, psql_1.execute_query_with_values)(`UPDATE ${constant_1.PSQL_DEFAULT_SCHEMA}.calc_tables SET compressed_content = decode($1,'hex') WHERE id = $2`, [tab.cells.toString("hex"), tab.id])
                             .then((q_r) => {
                             if (!q_r)
                                 rej(false);

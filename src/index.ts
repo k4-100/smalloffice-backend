@@ -10,6 +10,8 @@ import { NODE_HOSTNAME, NODE_PORT } from "./common/constant";
 
 const app = express();
 
+console.log("INDEX");
+
 app.use(compression({ filter: shouldCompress }));
 
 // handles cors

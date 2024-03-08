@@ -18,12 +18,13 @@ const psql_1 = require("../models/psql");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const defaults_1 = require("../common/defaults");
+const constant_1 = require("../common/constant");
 const accountsControllers = {
     register(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { username, password } = req.body;
             // check if user exists:
-            let user_query = yield (0, psql_1.execute_query_with_values)(`SELECT username FROM accounts 
+            let user_query = yield (0, psql_1.execute_query_with_values)(`SELECT username FROM ${constant_1.PSQL_DEFAULT_SCHEMA}.accounts 
         WHERE username=$1`, [username]);
             if (user_query[0]) {
                 return res.status(409).json({
@@ -33,9 +34,9 @@ const accountsControllers = {
             }
             const hash = bcrypt_1.default.hashSync(password, 10);
             // insert user data:
-            yield (0, psql_1.execute_query_with_values)(`INSERT INTO accounts(username,password) VALUES($1,$2)`, [username, hash]);
+            yield (0, psql_1.execute_query_with_values)(`INSERT INTO ${constant_1.PSQL_DEFAULT_SCHEMA}.accounts(username,password) VALUES($1,$2)`, [username, hash]);
             // check if user was created properly:
-            user_query = yield (0, psql_1.execute_query_with_values)(`SELECT id, username FROM accounts 
+            user_query = yield (0, psql_1.execute_query_with_values)(`SELECT id, username FROM ${constant_1.PSQL_DEFAULT_SCHEMA}.accounts 
         WHERE username=$1`, [username]);
             if (!user_query[0].id)
                 return res.status(500).json({
@@ -44,16 +45,16 @@ const accountsControllers = {
                 });
             //#region calc
             // add calc_sheet
-            yield (0, psql_1.execute_query_with_values)(`INSERT INTO calc_sheets(account_id) VALUES($1)`, [user_query[0].id]);
+            yield (0, psql_1.execute_query_with_values)(`INSERT INTO ${constant_1.PSQL_DEFAULT_SCHEMA}.calc_sheets(account_id) VALUES($1)`, [user_query[0].id]);
             // check if calc_sheet was created properly:
-            const calc_sheet_query = yield (0, psql_1.execute_query_with_values)(`SELECT id FROM calc_sheets 
+            const calc_sheet_query = yield (0, psql_1.execute_query_with_values)(`SELECT id FROM ${constant_1.PSQL_DEFAULT_SCHEMA}.calc_sheets 
         WHERE account_id=$1`, [user_query[0].id]);
             if (!calc_sheet_query[0].id)
                 return res.status(500).json({
                     success: true,
                     message: "cannot select sheet for further account creation",
                 });
-            const calc_query = `INSERT INTO calc_tables(calc_sheet_id, uncompressed_content_checksum, compressed_content) VALUES($1, $2,  decode($3, 'hex') )`;
+            const calc_query = `INSERT INTO ${constant_1.PSQL_DEFAULT_SCHEMA}.calc_tables(calc_sheet_id, uncompressed_content_checksum, compressed_content) VALUES($1, $2,  decode($3, 'hex') )`;
             for (let i = 0; i < 3; i++)
                 yield (0, psql_1.execute_query_with_values)(calc_query, [
                     calc_sheet_query[0].id,
@@ -63,16 +64,16 @@ const accountsControllers = {
             //#endregion !calc
             //#region markdown
             // add markdown_sheet
-            yield (0, psql_1.execute_query_with_values)(`INSERT INTO markdown_sheets(account_id) VALUES($1)`, [user_query[0].id]);
+            yield (0, psql_1.execute_query_with_values)(`INSERT INTO ${constant_1.PSQL_DEFAULT_SCHEMA}.markdown_sheets(account_id) VALUES($1)`, [user_query[0].id]);
             // check if calc_sheet was created properly:
-            const markdown_sheet_query = yield (0, psql_1.execute_query_with_values)(`SELECT id FROM markdown_sheets
+            const markdown_sheet_query = yield (0, psql_1.execute_query_with_values)(`SELECT id FROM ${constant_1.PSQL_DEFAULT_SCHEMA}.markdown_sheets
         WHERE account_id=$1`, [user_query[0].id]);
             if (!markdown_sheet_query[0].id)
                 return res.status(500).json({
                     success: true,
                     message: "cannot select sheet for further account creation",
                 });
-            const markdown_query = `INSERT INTO markdown_panels(markdown_sheet_id,  compressed_content) VALUES($1,  decode($2, 'hex') )`;
+            const markdown_query = `INSERT INTO ${constant_1.PSQL_DEFAULT_SCHEMA}.markdown_panels(markdown_sheet_id,  compressed_content) VALUES($1,  decode($2, 'hex') )`;
             // debugger;
             for (let i = 0; i < 3; i++)
                 yield (0, psql_1.execute_query_with_values)(markdown_query, [
@@ -90,7 +91,7 @@ const accountsControllers = {
         return __awaiter(this, void 0, void 0, function* () {
             const { username, password } = req.body;
             try {
-                const user_query = yield (0, psql_1.execute_query_with_values)(`SELECT id, username, password FROM accounts 
+                const user_query = yield (0, psql_1.execute_query_with_values)(`SELECT id, username, password FROM ${constant_1.PSQL_DEFAULT_SCHEMA}.accounts 
         WHERE username=$1`, [username]);
                 const user = user_query[0];
                 // checks if user is in db

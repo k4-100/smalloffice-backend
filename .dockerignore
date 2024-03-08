@@ -1,16 +1,10 @@
-# release.Dockerfile.dockerignore
-
 .git
 .gitignore
-outfiles
-outFiles
-node_modules
+.gitattributes
 run_docker.sh
 requests.http
 .eslintrc.json
 package-lock.json
 Dockerfile
+.dockerignore
 .env.default
-
-tsconfig.json
-app/tsconfig.json
